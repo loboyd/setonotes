@@ -1,0 +1,10 @@
+{{define "title"}}{{.Page.Title}} &ndash; setonotes{{end}}
+{{define "content"}}
+<!--<p><a href="/">setonotes</a></p>-->
+<h1>{{.Page.Title}}</h1>
+<p>
+    [<a href="/edit/{{.Page.ID}}">edit</a>]
+    [<a href="/delete/{{.Page.ID}}">delete</a>]
+</p>
+<div class="notes">{{.Page.Markdown}}</div>
+{{end}}

@@ -1,0 +1,9 @@
+main
+*swp
+*.rdb
+cmd/local_https
+local_https
+local_https/*
+to_server.zip
+logs.txt
+config.json

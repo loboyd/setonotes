@@ -1,0 +1,16 @@
+{{define "title"}}Editing {{.Title}} &ndash; setonotes{{end}}
+{{define "content"}}
+<!--<p><a href="/">setonotes</a></p>-->
+<h1>Editing {{.Title}}</h1>
+<form action="/save/{{ .ID }}" method="POST">
+<div>
+    <textarea name="title" rows="1" cols="40">{{printf "%s" .Title}}</textarea>
+</div>
+<div>
+    <textarea name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea>
+</div>
+<div>
+    <input type="submit" value="Save">
+</div>
+</form>
+{{end}}

@@ -1,0 +1,7 @@
+{
+    "DBHost": "localhost",
+    "DBPort": "0000",
+    "DBUser": "db-user-name-here",
+    "DBPass": "db-password-here",
+    "DBName": "db-name-here"
+}

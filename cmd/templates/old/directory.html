@@ -1,0 +1,6 @@
+<h1>Welcome to setonotes!</h1>
+<p><a href="/edit/0">[new page]</a><p/>
+{{range $title, $pageID := .}}
+    <p><a href="/view/{{ $pageID }}">{{ $title }}</a></p>
+{{end}}
+<p><a href="/signout/">[SIGNOUT]</a><p/>

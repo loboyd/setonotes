@@ -15,9 +15,9 @@ import (
 )
 
 type Repository interface {
-	CheckPageExists(pageID int) (bool, error)
-	UpdatePage(p *page.Page) error
-	CreatePage(p *page.Page, userID int) (int, error) // returns pageID
+    CheckPageExists(pageID int) (bool, error)
+    UpdatePage(p *page.Page) error
+    CreatePage(p *page.Page, userID int) (int, error) // returns pageID
     DeletePage(pageID int) error
     GetUserEncryptedPageKey(userID, pageID int) ([]byte, error)
     GetUserDisembodiedPages(userID int) ([]*page.Page, error)

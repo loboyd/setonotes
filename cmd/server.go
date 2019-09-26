@@ -105,9 +105,10 @@ func (s *server) routes() {
     s.router.HandleFunc("/save/",    s.makeHandler(s.saveHandler))
     s.router.HandleFunc("/edit/",    s.makeHandler(s.editHandler))
     s.router.HandleFunc("/delete/",  s.makeHandler(s.deleteHandler))
+    s.router.HandleFunc("/api/",     s.makeAPIHandler(s.sendMessageHandler))
 
     s.validPath = regexp.MustCompile(
-        "^/(new|view|save|edit|delete|signout)/([0-9]*)$")
+        "^/(new|view|save|edit|delete|signout|api)/([0-9]*)$")
 }
 
 /**

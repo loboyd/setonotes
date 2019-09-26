@@ -59,6 +59,31 @@ func (s *server) makeHandler(fn func (http.ResponseWriter, *http.Request,
     }
 }
 
+/**
+ * Make handler for API routes; check client auth, check valid path string,
+ * call proper handler
+ */
+func (s *server) makeAPIHandler(fn func (http.ResponseWriter,
+    *http.Request)) http.HandlerFunc {
+
+    return func(w http.ResponseWriter, r *http.Request) {
+
+        // TODO SECURITY-CRITICAL: Replace this with actual auth-checking
+        authorized := true;
+
+        // check for valid path string
+        if r.URL.Path != "/api/messaging" {
+            http.NotFound(w, r)
+            return
+        }
+
+        // This is inside an `if` just to be explicit
+        if authorized {
+            fn(w, r)
+        }
+    }
+}
+
 func (s *server) homePageHandler(w http.ResponseWriter, r *http.Request) {
     // check valid path
     if r.URL.Path != "/" {
@@ -285,3 +310,13 @@ func (s *server) deleteHandler(w http.ResponseWriter, r *http.Request,
     http.Redirect(w, r, "/", http.StatusFound)
 }
 
+func (s *server) sendMessageHandler(w http.ResponseWriter, r *http.Request) {
+    // TODO: Replace this with an actual handler
+    if r.Method == "GET" {
+        log.Println("received GET request!")
+    } else if r.Method == "POST" {
+        log.Println("received POST request!")
+    } else {
+        log.Println("didn't receive POST or GET request...")
+    }
+}

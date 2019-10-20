@@ -8,7 +8,7 @@ import (
 
     "github.com/setonotes/pkg/page"
 
-    "github.com/blackfriday"
+    "gopkg.in/russross/blackfriday.v2"
     "github.com/microcosm-cc/bluemonday"
 )
 

@@ -59,7 +59,7 @@ func main() {
     log.Println("successfully created new session cache")
 
     // create new encryption service
-    log.Println("creating new encryption servic...")
+    log.Println("creating new encryption service...")
     encryptionService := encryption.NewService(sessionCache)
     log.Println("successfully created new encryption service")
 

@@ -4,12 +4,8 @@ import (
     "log"
     "strconv"
     "net/http"
-    "html/template"
 
     "github.com/setonotes/pkg/page"
-
-    "gopkg.in/russross/blackfriday.v2"
-    "github.com/microcosm-cc/bluemonday"
 )
 
 /**
@@ -142,68 +138,12 @@ func newlineDoctor(text []byte) []byte {
     return text
 }
 
-func (s *server) viewHandler(w http.ResponseWriter, r *http.Request, pageID int,
-    userID int, authorized bool) {
-
-    // redirect visitors
-    if !authorized {
-        log.Println("authorized attempt to view /view/; redirecting...")
-        // should this be status found?
-        http.Redirect(w, r, "/", http.StatusNotFound)
-    }
-
-    // get user
-    u, err := s.userService.GetByID(userID)
-    if err != nil {
-        log.Println("failed to get user by ID for view page")
-        return // TODO: this should probably 404
-    }
-
-    p, err := s.permissionService.LoadAndDecryptPage(pageID, u)
-    if err != nil {
-        // don't do this because it's weird
-        // http.Redirect(w, r, "/edit/"+string(pageID), http.StatusFound)
-        log.Println("failed to decrypt page for view page")
-        w.WriteHeader(http.StatusNotFound)
-        return // TODO: this should probably 404
-    }
-
-    // there is probably a better way to handle this issue
-    p.Body = newlineDoctor(p.Body)
-
-    // use blackfriday Markdown processor to get HTML
-    unsafeHTML := blackfriday.Run(p.Body)
-
-    // use bluemonday HTML sanitizer to make HTML safe
-    safeHTML := bluemonday.UGCPolicy().SanitizeBytes(unsafeHTML)
-
-    // create a map to include markdown in template data
-    md_tmpl := map[string]interface{} {
-        "ID":    p.ID,
-        "Title": string(p.Title),
-        "Markdown": template.HTML(safeHTML),
-    }
-
-    // data for template
-    data := struct {
-        Page       map[string]interface{}
-        Navbar     bool
-        Authorized bool
-    }{
-        md_tmpl,
-        true, // `/view/` always gets a navbar
-        authorized,
-    }
-
-    s.renderTemplate(w, "view.tmpl", data)
-}
-
 func (s *server) editHandler(w http.ResponseWriter, r *http.Request, pageID int,
     userID int, authorized bool) {
 
     // redirect visitors
     if !authorized {
-        log.Println("authorized attempt to view /view/")
+        log.Println("unauthorized attempt to edit", pageID)
         // should this be status found?
         http.Redirect(w, r, "/", http.StatusNotFound)
     }
@@ -247,7 +187,7 @@ func (s *server) saveHandler(w http.ResponseWriter, r *http.Request, pageID int,
 
     // redirect visitors
     if !authorized {
-        log.Println("authorized attempt to view /view/")
+	log.Println("unauthorized attempt to save", pageID)
         // should this be status found?
         http.Redirect(w, r, "/", http.StatusNotFound)
     }
@@ -270,7 +210,7 @@ func (s *server) saveHandler(w http.ResponseWriter, r *http.Request, pageID int,
         return
     }
 
-    http.Redirect(w, r, "/view/"+strconv.Itoa(pageID), http.StatusFound)
+    http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func (s *server) deleteHandler(w http.ResponseWriter, r *http.Request,
@@ -278,7 +218,7 @@ func (s *server) deleteHandler(w http.ResponseWriter, r *http.Request,
 
     // redirect visitors
     if !authorized {
-        log.Println("authorized attempt to view /view/")
+	log.Println("unauthorized attempt to delete", pageID)
         // should this be status found?
         http.Redirect(w, r, "/", http.StatusNotFound)
     }

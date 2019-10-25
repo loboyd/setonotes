@@ -100,14 +100,16 @@ func (s *server) routes() {
     s.router.HandleFunc("/",         s.homePageHandler)
     s.router.HandleFunc("/signup/",  s.signupHandler)
     s.router.HandleFunc("/signin/",  s.signinHandler)
+    s.router.HandleFunc("/static/",  s.staticFileHandler)
     s.router.HandleFunc("/signout/", s.makeHandler(s.signoutHandler))
     s.router.HandleFunc("/view/",    s.makeHandler(s.viewHandler))
     s.router.HandleFunc("/save/",    s.makeHandler(s.saveHandler))
     s.router.HandleFunc("/edit/",    s.makeHandler(s.editHandler))
     s.router.HandleFunc("/delete/",  s.makeHandler(s.deleteHandler))
 
+    // TODO is the * at the end of this regex safe?
     s.validPath = regexp.MustCompile(
-        "^/(new|view|save|edit|delete|signout)/([0-9]*)$")
+        "^/((new|view|save|edit|delete|signout)/([0-9]*)|static/*)$")
 }
 
 /**

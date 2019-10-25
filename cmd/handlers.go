@@ -77,6 +77,13 @@ func (s *server) homePageHandler(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+func (s *server) staticFileHandler(w http.ResponseWriter, r *http.Request) {
+    // if the user wants a static file, then serve it to them
+    log.Println(r.URL.Path) // TODO probably need a log level switch somewhere
+    http.ServeFile(w, r, r.URL.Path[1:])
+}
+
+
 func (s *server) landingPageHandler(w http.ResponseWriter, r *http.Request,
     authorized bool) {
 

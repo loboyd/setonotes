@@ -109,7 +109,7 @@ func (s *server) routes() {
 
     // TODO is the * at the end of this regex safe?
     s.validPath = regexp.MustCompile(
-        "^/((new|view|save|edit|delete|signout)/([0-9]*)|static/*)$")
+        "^/(new|view|save|edit|delete|signout)/([0-9]*)$")
 }
 
 /**

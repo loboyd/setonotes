@@ -2,40 +2,93 @@
 <html>
 <head>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="signin.css">
     <style>
-        input {
-            width: 25%;
-            padding: 12px 20px;
-            margin: 8px 0;
-            box-sizing: border-box;
-        }
-        input[type=text] {
-            border: 2px solid black;
-            border-radius: 4px;
-        }
-        input[type=text]:focus {
-            border: 2px solid red;
-            border-radius: 4px;
-        }
-        input[type=password] {
-            border: 2px solid black;
-            border-radius: 4px;
-        }
-        input[type=password]:focus {
-            border: 2px solid red;
-            border-radius: 4px;
-        }
+    html {
+        height: 100%;
+    }
+
+    body {
+        font-family: sans-serif;
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+        background-image: linear-gradient(#383f89, #8d2b2c);
+    }
+
+    .signin-container {
+        color: white;
+        max-width: 250px;
+        margin: 100px auto;
+        padding: 5% 4%;
+    }
+
+    .signin-string {
+        text-align: center;
+    }
+
+    label {
+        font-size: 0.9em;
+    }
+
+    input, button {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        border: 1px solid white;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    button, input[type="submit"] {
+        padding: 7px 20px;
+        color: #573663;
+        background-color: #e1d2d2;
+        font-size: 1em;
+        font-weight: bold;
+    }
+
+    input{
+        background-color: #441c6800;
+        color: white;
+        caret-color: white;
+    }
+
+    input[type=text] {
+    }
+
+    input[type=text]:focus {
+    }
+
+    input[type=password] {
+    }
+
+    input[type=password]:focus {
+    }
     </style>
+
 </head>
+
 <body>
-<div style="text-align: center;">
-    <form method="POST" action "/signin">
-        <label>username</label>
-        <input name="username" type="text" value="">
-        <label>password</label>
-        <input name="password" type="password" value="">
-        <input type="submit" value="submit" />
+<div class="signin-container">
+
+    <p class="signin-string">setonotes</p>
+
+    <form method="POST">
+        <div class="input-field">
+            <label>username</label><br>
+            <input name="username" type="text" value="" autofocus>
+        </div>
+
+        <div class="input-field">
+            <label>password</label><br>
+            <input name="password" type="password" value="">
+        </div>
+
+        <!--<button><b>Sign In</b></button>-->
+        <input type="submit" value="Sign In">
     </form>
 </div>
 </body>
+
 </html>

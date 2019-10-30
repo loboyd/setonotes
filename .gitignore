@@ -7,3 +7,4 @@ local_https/*
 to_server.zip
 logs.txt
 config.json
+database_schema

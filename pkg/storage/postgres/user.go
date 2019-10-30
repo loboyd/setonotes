@@ -24,6 +24,7 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
         privateKeyEncrypted []byte
         publicKey           []byte
         salt                []byte
+        authSalt            []byte
         version             int
     )
 
@@ -37,6 +38,7 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
             private_key_encrypted,
             public_key,
             salt,
+            auth_salt,
             version
         FROM users
         WHERE id=$1`
@@ -48,6 +50,7 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
         &privateKeyEncrypted,
         &publicKey,
         &salt,
+        &authSalt,
         &version,
     )
     if err != nil {
@@ -64,6 +67,7 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
         PrivateKeyEncrypted: privateKeyEncrypted,
         PublicKey:           publicKey,
         Salt:                salt,
+        AuthSalt:            authSalt,
         Version:             version,
     }, nil
 }
@@ -115,6 +119,7 @@ func (r *Repository) CreateUser(user *user.User) (int, error) {
             private_key_encrypted,
             public_key,
             salt,
+            authSalt,
             version)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING id`
@@ -127,6 +132,7 @@ func (r *Repository) CreateUser(user *user.User) (int, error) {
         user.PrivateKeyEncrypted,
         user.PublicKey,
         user.Salt,
+        user.AuthSalt,
         user.Version,
     ).Scan(&userID)
     if err != nil {

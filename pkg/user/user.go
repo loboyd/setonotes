@@ -24,6 +24,7 @@ type User struct {
     PrivateKeyEncrypted []byte // encryption service will handle marshaling
     PublicKey           []byte // same for public key
     Salt                []byte
+    AuthSalt            []byte
     Version             int
 }
 
@@ -168,10 +169,17 @@ func (s *Service) Create(username, email, passwordStr string) (*User, error) {
         return nil, err
     }
 
-    //  create salt
+    //  create salt for encryption
     salt, err := s.encryption.NewSalt()
     if err != nil {
-        log.Printf("failed to create salt: %v", err)
+        log.Printf("failed to create encryption salt: %v", err)
+        return nil, err
+    }
+
+    //  create salt for authentication
+    authSalt, err := s.encryption.NewSalt()
+    if err != nil {
+        log.Printf("failed to create authentication salt: %v", err)
         return nil, err
     }
 
@@ -211,6 +219,7 @@ func (s *Service) Create(username, email, passwordStr string) (*User, error) {
         PrivateKeyEncrypted: privateKeyEncrypted,
         PublicKey:           publicKey,
         Salt:                salt,
+        AuthSalt:            authSalt,
         Version:             CurrentVersion,
     }
     userID, err := s.repo.CreateUser(u) // returns -1 userID if err

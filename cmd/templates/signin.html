@@ -2,6 +2,11 @@
 <html>
 <head>
     <meta charset="UTF-8" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+
+
     <link rel="stylesheet" href="signin.css">
     <style>
     html {
@@ -27,6 +32,7 @@
         text-align: center;
         color: white;
         text-decoration: none;
+        font-weight: bold;
     }
 
     label {
@@ -76,21 +82,69 @@
 
     <p class="signin-string"><a href="/">setonotes</a></p>
 
-    <form method="POST">
-        <div class="input-field">
-            <label>username</label><br>
-            <input name="username" type="text" value="" autofocus>
-        </div>
+    <div class="input-field">
+        <label>username</label><br>
+        <input id="username" name="username" type="text" value="" autofocus>
+    </div>
 
-        <div class="input-field">
-            <label>password</label><br>
-            <input name="password" type="password" value="">
-        </div>
+    <div class="input-field">
+        <label>password</label><br>
+        <input id="password" name="password" type="password" value="">
+    </div>
 
-        <!--<button><b>Sign In</b></button>-->
-        <input type="submit" value="Sign In">
+    <button onclick="go()"><b>Sign In</b></button>
+
+    <form id="hiddenAuthForm" method="POST">
+        <input type="hidden" name="username">
+        <input type="hidden" name="password">
     </form>
+
 </div>
 </body>
+
+<script>
+
+//import pbkdf2 from 'crypto-js/pbkdf2'
+//var PBKDF2 = require('crypto-js/pbkdf2');
+var CryptoJS = require("crypto-js");
+
+function go() {
+    let request_data = JSON.stringify({
+        username: document.getElementById('username').value,
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: '/api/salts',
+        //dataType: 'json',
+        data: request_data,
+        success: function(response){
+            console.log('salts: ' + JSON.stringify(response));
+            //let salts = JSON.parse(response);
+
+            // get each salt
+            let auth_salt = response.auth_salt;
+            console.log('auth_salt: ' + auth_salt);
+            let encryption_salt = response.encryption_salt;
+
+            // compute PBKDF2 output
+            let plain_text_password = document.getElementById('password').value;
+            console.log('plain_text_password: ' + plain_text_password);
+            let auth_key = CryptoJS.PBKDF2(plain_text_password, auth_salt,{
+                keySize: 128/32,
+                iterations: 3e5,
+            });
+            console.log('auth_key: ' + auth_key);
+
+            // populate hiddenAuthForm
+
+            // submit
+        },
+        error: function(){
+            console.log('TODO: Replace this with a user-facing error.');
+        },
+    });
+}
+</script>
 
 </html>

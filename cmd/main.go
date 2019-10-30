@@ -102,6 +102,14 @@ func main() {
 
     log.Println("listening on ports :80 and :443...")
 
+    _, err = userService.GetByUsername("ne_test");
+    if err != nil {
+        log.Printf("error getting username: %v", err)
+    } else {
+        //log.Println("username: %v", u.Username)
+        log.Println("successfully got username!")
+    }
+
     // redirect all HTTP traffic to HTTPS
     go http.ListenAndServe(":80", http.HandlerFunc(httpsRedirect))
     log.Fatal(http.ListenAndServeTLS(":443", tlsCertPath, tlsKeyPath,

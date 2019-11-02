@@ -94,12 +94,13 @@
 
     <button onclick="go()"><b>Sign In</b></button>
 
-    <form id="hiddenAuthForm" method="POST">
-        <input type="hidden" name="username">
-        <input type="hidden" name="password">
-    </form>
-
 </div>
+
+<form id="hiddenAuthForm" method="POST">
+    <input id="usernameHidden" type="hidden" name="username">
+    <input id="passwordHidden" type="hidden" name="password">
+</form>
+
 </body>
 
 <script>
@@ -137,6 +138,8 @@ function go() {
             console.log('auth_key: ' + auth_key);
 
             // populate hiddenAuthForm
+            document.getElementById("usernameHidden").value = username;
+            document.getElementById("passwordHidden").value = auth_key;
 
             // submit
         },

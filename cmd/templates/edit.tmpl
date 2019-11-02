@@ -1,7 +1,7 @@
 {{define "title"}}Editing {{.Title}} &ndash; setonotes{{end}}
 {{define "content"}}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
-<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+<link rel="stylesheet" href="/static/css/easymde.min.css">
+<script src="/static/js/easymde.min.js"></script>
 <h1>Editing {{.Title}}</h1>
 <form action="/save/{{ .ID }}" method="POST">
 <div>
@@ -15,7 +15,7 @@
 </div>
 </form>
 <script>
-var simplemde = new SimpleMDE({ element: document.getElementById("input-body") });
-simplemde.value('{{printf "%s" .Body}}');
+var easyMDE = new EasyMDE({ element: document.getElementById("input-body") });
+easyMDE.value('{{printf "%s" .Body}}');
 </script>
 {{end}}

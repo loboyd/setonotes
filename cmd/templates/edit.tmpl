@@ -1,16 +1,21 @@
 {{define "title"}}Editing {{.Title}} &ndash; setonotes{{end}}
 {{define "content"}}
-<!--<p><a href="/">setonotes</a></p>-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
 <h1>Editing {{.Title}}</h1>
 <form action="/save/{{ .ID }}" method="POST">
 <div>
     <textarea name="title" rows="1" cols="40">{{printf "%s" .Title}}</textarea>
 </div>
 <div>
-    <textarea name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea>
+    <textarea id="input-body" name="body" rows="20" cols="80"></textarea>
 </div>
 <div>
     <input type="submit" value="Save">
 </div>
 </form>
+<script>
+var simplemde = new SimpleMDE({ element: document.getElementById("input-body") });
+simplemde.value('{{printf "%s" .Body}}');
+</script>
 {{end}}

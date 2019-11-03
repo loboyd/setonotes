@@ -19,5 +19,10 @@ var easyMDE = new EasyMDE({ element: document.getElementById("input-body") });
 easyMDE.value('{{printf "%s" .Body}}');
 easyMDE.toggleFullScreen();
 easyMDE.togglePreview();
+document.getElementsByClassName("editor-preview-full")[0].tabIndex='0';
+setInterval(
+    function() {
+        document.getElementsByClassName("editor-preview-full")[0].focus();
+    }, 10);
 </script>
 {{end}}

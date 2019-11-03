@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="/static/css/easymde.min.css">
 <script src="/static/js/easymde.min.js"></script>
 <h1>Editing {{.Title}}</h1>
-<form action="/save/{{ .ID }}" method="POST">
+<form id="input-form" action="/save/{{ .ID }}" method="POST">
 <div>
     <textarea name="title" rows="1" cols="40">{{printf "%s" .Title}}</textarea>
 </div>
@@ -17,5 +17,7 @@
 <script>
 var easyMDE = new EasyMDE({ element: document.getElementById("input-body") });
 easyMDE.value('{{printf "%s" .Body}}');
+easyMDE.toggleFullScreen();
+easyMDE.togglePreview();
 </script>
 {{end}}

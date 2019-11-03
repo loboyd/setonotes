@@ -1239,6 +1239,10 @@ function wordCount(data) {
     return count;
 }
 
+function saveNote() {
+    document.getElementById('input-form').submit();
+}
+
 var toolbarBuiltInButtons = {
     'bold': {
         name: 'bold',
@@ -1386,7 +1390,6 @@ var toolbarBuiltInButtons = {
         noDisable: true,
         noMobile: true,
         title: 'Toggle Side by Side',
-        default: true,
     },
     'fullscreen': {
         name: 'fullscreen',
@@ -1395,10 +1398,14 @@ var toolbarBuiltInButtons = {
         noDisable: true,
         noMobile: true,
         title: 'Toggle Fullscreen',
-        default: true,
     },
-    'separator-4': {
-        name: 'separator-4',
+    'save': {
+        name: 'save',
+        action: saveNote,
+        className: 'fa fa-save',
+        noDisable: true,
+        title: 'Save',
+        default: true,
     },
     'guide': {
         name: 'guide',
@@ -1408,8 +1415,8 @@ var toolbarBuiltInButtons = {
         title: 'Markdown Guide',
         default: true,
     },
-    'separator-5': {
-        name: 'separator-5',
+    'separator-4': {
+        name: 'separator-4',
     },
     'undo': {
         name: 'undo',

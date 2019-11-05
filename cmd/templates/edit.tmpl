@@ -2,15 +2,28 @@
 {{define "content"}}
 <!--<p><a href="/">setonotes</a></p>-->
 <h1>Editing {{.Title}}</h1>
-<form action="/save/{{ .ID }}" method="POST">
+<form id="editorForm" action="/save/{{ .ID }}" method="POST">
 <div>
     <textarea name="title" rows="1" cols="40">{{printf "%s" .Title}}</textarea>
 </div>
 <div>
-    <textarea name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea>
+    <textarea id="editor" name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea>
 </div>
 <div>
     <input type="submit" value="Save">
 </div>
 </form>
+
+<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+<script>
+var simplemde = new SimpleMDE({element: document.getElementById("editor")});
+simplemde.value("{{printf "%s" .Body}}");
+
+function save() {
+    let data = simplemde.value();
+    document.getElementById("editor").value = data;
+    document.getElementById("editorForm").submit();
+}
+</script>
+
 {{end}}

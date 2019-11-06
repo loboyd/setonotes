@@ -1381,7 +1381,6 @@ var toolbarBuiltInButtons = {
         className: 'fa fa-eye',
         noDisable: true,
         title: 'Toggle Preview',
-        default: true,
     },
     'side-by-side': {
         name: 'side-by-side',
@@ -1404,7 +1403,7 @@ var toolbarBuiltInButtons = {
         action: saveNote,
         className: 'fa fa-save',
         noDisable: true,
-        title: 'Save',
+        title: 'Save (CTRL+Enter)',
         default: true,
     },
     'guide': {
@@ -1815,17 +1814,19 @@ EasyMDE.prototype.render = function (el) {
     keyMaps['Enter'] = 'newlineAndIndentContinueMarkdownList';
     keyMaps['Tab'] = 'tabAndIndentMarkdownList';
     keyMaps['Shift-Tab'] = 'shiftTabAndUnindentMarkdownList';
-    keyMaps['Esc'] = function (cm) {
-        if (cm.getOption('fullScreen')) toggleFullScreen(self);
-    };
-
-    document.addEventListener('keydown', function (e) {
-        e = e || window.event;
-
-        if (e.keyCode == 27) {
-            if (self.codemirror.getOption('fullScreen')) toggleFullScreen(self);
-        }
-    }, false);
+    // normally, easyMDE/codemirror would exit fullscreen mode when the user
+    // presses `escape`, but we want to capture that keystroke ourselves
+    //keyMaps['Esc'] = function (cm) {
+    //    if (cm.getOption('fullScreen')) toggleFullScreen(self);
+    //};
+    //
+    //document.addEventListener('keydown', function (e) {
+    //    e = e || window.event;
+    //
+    //    if (e.keyCode == 27) {
+    //        if (self.codemirror.getOption('fullScreen')) toggleFullScreen(self);
+    //    }
+    //}, false);
 
     var mode, backdrop;
     if (options.spellChecker !== false) {

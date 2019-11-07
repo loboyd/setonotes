@@ -9,9 +9,12 @@ import (
 )
 
 func (s *server) saltsHandler(w http.ResponseWriter, r *http.Request) {
+    log.Println("Getting salts via API...")
+
     // check valid path
     if r.URL.Path != "/api/salts" {
         w.WriteHeader(http.StatusNotFound)
+        log.Println("error: invalid path name")
         return
     }
 
@@ -25,12 +28,14 @@ func (s *server) saltsHandler(w http.ResponseWriter, r *http.Request) {
     err := decoder.Decode(&d)
     if err != nil {
         log.Printf("error decoding JSON request body: %v", err)
+        return;
     }
 
     // get the user
     user, err := s.userService.GetByUsername(d.Username)
     if err != nil {
         log.Printf("error getting user: %v", err)
+        return;
     }
 
     // grab salts for the response data
@@ -41,6 +46,8 @@ func (s *server) saltsHandler(w http.ResponseWriter, r *http.Request) {
         user.Salt,
         user.AuthSalt,
     }
+
+    log.Println("Responding with JSON packet of salts...")
 
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)

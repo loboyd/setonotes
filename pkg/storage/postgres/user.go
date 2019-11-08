@@ -119,9 +119,9 @@ func (r *Repository) CreateUser(user *user.User) (int, error) {
             private_key_encrypted,
             public_key,
             salt,
-            authSalt,
+            auth_salt,
             version)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING id`
     var userID int
     err := r.DB.QueryRow(psqlStmt,

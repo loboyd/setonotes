@@ -124,6 +124,9 @@ function go() {
         let auth_salt = response.auth_salt;
         let encryption_salt = response.encryption_salt;
 
+        //TODO: remove this
+        console.log('auth salt: ' + auth_salt);
+
         // get submitted password
         let submitted_password = document.getElementById("password").value;
 
@@ -132,8 +135,6 @@ function go() {
         // generate and store encryption key
         getBitsFromPassword(submitted_password, encryption_salt)
         .then(function(encryption_key){
-            console.log('TEST. encryption key: '
-                + decoder.decode(encryption_key));
         });
 
         // generate and submit auth key
@@ -142,11 +143,12 @@ function go() {
             // populate and submit hidden auth form
             document.getElementById("hiddenUsername").value = username;
             document.getElementById("hiddenPassword").value =
-                decoder.decode(auth_key);
+                f(auth_key);
 
-            console.log('auth key: ' + decoder.decode(auth_key));
+            //console.log('auth key: ' + arrayBufferToString(auth_key));
+            console.log('auth key: ' + f(auth_key));
 
-            //document.getElementById("hiddenAuthForm").submit();
+            document.getElementById("hiddenAuthForm").submit();
         });
     })
     .catch(function(){
@@ -168,16 +170,6 @@ async function getBitsFromPassword(password, salt) {
         ["deriveBits", "deriveKey"]
     )
 
-    /*
-    const imported_salt = await window.crypto.subtle.importKey(
-        "raw",
-        encoder.encode(salt),
-        {name: "PBKDF2"},
-        false,
-        ["deriveBits", "deriveKey"]
-    )
-    */
-
     return window.crypto.subtle.deriveBits(
         {
             "name": "PBKDF2",
@@ -186,8 +178,72 @@ async function getBitsFromPassword(password, salt) {
             "hash": "SHA-256"
         },
         imported_password,
-        256
+        128
     );
+}
+
+function f(buffer) {
+    let view = new DataView(buffer);
+    let r = '';
+
+    for (let i = 0; i < view.byteLength; i++)
+    {
+        r += view.getUint8(i).toString();
+    }
+
+    return r;
+}
+
+/**
+ * Convert an ArrayBuffer to a base-64 string
+ * from here:
+ *   https://stackoverflow.com/questions/9267899
+ *   /arraybuffer-to-base64-encoded-string
+ */
+function arrayBufferToBase64(buffer) {
+    let binary = '';
+    let bytes = new Uint8Array(buffer);
+    let len = bytes.byteLength;
+
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+
+    return window.btoa(binary);
+}
+
+/**
+ * Convert ArrayBuffer to a binary string
+ * from here:
+ *   https://stackoverflow.com/a/16365505/9986578
+ */
+function arrayBufferToString(buffer) {
+    return BinaryToString(
+        String.fromCharCode.apply(
+            null,
+            Array.prototype.slice.apply(new Uint8Array(buffer))
+        )
+    );
+}
+
+/**
+ * Auxiliary function for arrayBufferToString() above
+ * from here:
+ *   https://stackoverflow.com/a/16365505/9986578
+ */
+function BinaryToString(binary) {
+    var error;
+
+    try {
+        return decodeURIComponent(escape(binary));
+    } catch (_error) {
+        error = _error;
+        if (error instanceof URIError) {
+            return binary;
+        } else {
+            throw error;
+        }
+    }
 }
 
 </script>

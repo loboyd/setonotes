@@ -79,22 +79,17 @@
 
 <body>
 <div class="signin-container">
-
     <p class="signin-string"><a href="/">setonotes</a></p>
-
     <div class="input-field">
         <label>username</label><br>
         <input id="username" name="username" type="text" value="" autofocus
             autocomplete="off">
     </div>
-
     <div class="input-field">
         <label>password</label><br>
         <input id="password" name="password" type="password" value="">
     </div>
-
     <button onclick="go()"><b>Sign In</b></button>
-
 </div>
 
 <form id="hiddenAuthForm" method="POST">
@@ -116,7 +111,7 @@ function go() {
     $.ajax({
         type: "POST",
         url: "/api/salts",
-        //dataType: 'json',
+        dataType: 'json',
         data: request_data,
     })
     .then(function(response){
@@ -124,30 +119,24 @@ function go() {
         let auth_salt = response.auth_salt;
         let encryption_salt = response.encryption_salt;
 
-        //TODO: remove this
-        console.log('auth salt: ' + auth_salt);
-
         // get submitted password
         let submitted_password = document.getElementById("password").value;
-
-        decoder = new TextDecoder();
 
         // generate and store encryption key
         getBitsFromPassword(submitted_password, encryption_salt)
         .then(function(encryption_key){
+            // TODO: store encryption key somewhere
         });
 
-        // generate and submit auth key
+        // generate and submit auth key (with username)
         getBitsFromPassword(submitted_password, auth_salt)
         .then(function(auth_key){
             // populate and submit hidden auth form
             document.getElementById("hiddenUsername").value = username;
             document.getElementById("hiddenPassword").value =
-                f(auth_key);
+                arrayBufferToBase64(auth_key);
 
-            //console.log('auth key: ' + arrayBufferToString(auth_key));
-            console.log('auth key: ' + f(auth_key));
-
+            console.log('base64 auth key: ' + arrayBufferToBase64(auth_key));
             document.getElementById("hiddenAuthForm").submit();
         });
     })
@@ -168,7 +157,7 @@ async function getBitsFromPassword(password, salt) {
         {name: "PBKDF2"},
         false,
         ["deriveBits", "deriveKey"]
-    )
+    );
 
     return window.crypto.subtle.deriveBits(
         {
@@ -180,18 +169,6 @@ async function getBitsFromPassword(password, salt) {
         imported_password,
         128
     );
-}
-
-function f(buffer) {
-    let view = new DataView(buffer);
-    let r = '';
-
-    for (let i = 0; i < view.byteLength; i++)
-    {
-        r += view.getUint8(i).toString();
-    }
-
-    return r;
 }
 
 /**
@@ -210,40 +187,6 @@ function arrayBufferToBase64(buffer) {
     }
 
     return window.btoa(binary);
-}
-
-/**
- * Convert ArrayBuffer to a binary string
- * from here:
- *   https://stackoverflow.com/a/16365505/9986578
- */
-function arrayBufferToString(buffer) {
-    return BinaryToString(
-        String.fromCharCode.apply(
-            null,
-            Array.prototype.slice.apply(new Uint8Array(buffer))
-        )
-    );
-}
-
-/**
- * Auxiliary function for arrayBufferToString() above
- * from here:
- *   https://stackoverflow.com/a/16365505/9986578
- */
-function BinaryToString(binary) {
-    var error;
-
-    try {
-        return decodeURIComponent(escape(binary));
-    } catch (_error) {
-        error = _error;
-        if (error instanceof URIError) {
-            return binary;
-        } else {
-            throw error;
-        }
-    }
 }
 
 </script>

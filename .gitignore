@@ -8,3 +8,5 @@ to_server.zip
 logs.txt
 config.json
 easy-markdown-editor
+cmd/static/css/easymde.min.css
+cmd/static/css/easymde.min.js

@@ -43,7 +43,7 @@ func (s *server) saltsHandler(w http.ResponseWriter, r *http.Request) {
         Encryption_salt []byte `json:"encryption_salt"`
         Auth_salt       []byte `json:"auth_salt"`
     }{
-        user.Salt,
+        user.EncryptionSalt,
         user.AuthSalt,
     }
 

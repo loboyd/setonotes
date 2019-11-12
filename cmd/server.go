@@ -31,7 +31,8 @@ import (
 type userService interface {
     GetByID(userID int) (*user.User, error)
     GetByUsername(username string) (*user.User, error)
-    Create(username, email, password string) (*user.User, error)
+    Create(username, email, password, authSalt, encryptionSalt,
+        mainKeyEncrypted string) (*user.User, error)
     TrackActivity(userID int, path string) error
     CheckBetaTesterWhitelist(username string) (bool, error)
 }

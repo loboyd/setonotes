@@ -82,12 +82,12 @@
     <p class="signin-string"><a href="/">setonotes</a></p>
     <div class="input-field">
         <label>username</label><br>
-        <input id="username" name="username" type="text" value="" autofocus
+        <input id="username" type="text" value="" autofocus
             autocomplete="off">
     </div>
     <div class="input-field">
         <label>password</label><br>
-        <input id="password" name="password" type="password" value="">
+        <input id="password" type="password" value="">
     </div>
     <button onclick="go()"><b>Sign In</b></button>
 </div>
@@ -117,6 +117,7 @@ function go() {
     .then(function(response){
         // get both authentication and encryption salt
         let auth_salt = response.auth_salt;
+        console.log('auth salt: ' + auth_salt);
         let encryption_salt = response.encryption_salt;
 
         // get submitted password
@@ -162,7 +163,8 @@ async function getBitsFromPassword(password, salt) {
     return window.crypto.subtle.deriveBits(
         {
             "name": "PBKDF2",
-            salt: encoder.encode(salt),
+            //salt: encoder.encode(salt),
+            salt: base64ToArrayBuffer(salt),
             "iterations": 3e5,
             "hash": "SHA-256"
         },
@@ -187,6 +189,21 @@ function arrayBufferToBase64(buffer) {
     }
 
     return window.btoa(binary);
+}
+
+/**
+ * Conver a base-64 string to an ArrayBuffer
+ * from here:
+ *   https://stackoverflow.com/a/21797381/9986578
+ */
+function base64ToArrayBuffer(base64) {
+    var binary_string = window.atob(base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes.buffer;
 }
 
 </script>

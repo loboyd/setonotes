@@ -97,6 +97,11 @@ func (s *server) signupHandler(w http.ResponseWriter, r *http.Request) {
         username := r.FormValue("username")
         email    := r.FormValue("email")
         password := r.FormValue("password")
+        authSalt := r.FormValue("auth_salt")
+        encryptionSalt   := r.FormValue("encryption_salt")
+        mainKeyEncrypted := r.FormValue("main_key_encrypted")
+
+        log.Println("auth salt: ", authSalt)
 
         // right now, this is checking the username exists in the beta-testers
         // table, but eventually this will check against our imposed conditions
@@ -113,7 +118,9 @@ func (s *server) signupHandler(w http.ResponseWriter, r *http.Request) {
         }
         // END
 
-        u, err := s.userService.Create(username, email, password)
+        //u, err := s.userService.Create(username, email, password)
+        u, err := s.userService.Create(username, email, password, authSalt,
+            encryptionSalt, mainKeyEncrypted)
         if err != nil {
             log.Println("failed to create new user: %v", err)
             return

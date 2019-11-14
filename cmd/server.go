@@ -98,18 +98,18 @@ func newServer(u userService, a authService, p permissionService) *server {
  * Defines all routes for the site
  */
 func (s *server) routes() {
-    s.router.HandleFunc("/",          s.homePageHandler)
+    s.router.HandleFunc("/",         s.homePageHandler)
     s.router.HandleFunc("/api/salts", s.saltsHandler)
-    s.router.HandleFunc("/signup/",   s.signupHandler)
-    s.router.HandleFunc("/signin/",   s.signinHandler)
-    s.router.HandleFunc("/signout/",  s.makeHandler(s.signoutHandler))
-    s.router.HandleFunc("/view/",     s.makeHandler(s.viewHandler))
-    s.router.HandleFunc("/save/",     s.makeHandler(s.saveHandler))
-    s.router.HandleFunc("/edit/",     s.makeHandler(s.editHandler))
-    s.router.HandleFunc("/delete/",   s.makeHandler(s.deleteHandler))
+    s.router.HandleFunc("/signup/",  s.signupHandler)
+    s.router.HandleFunc("/signin/",  s.signinHandler)
+    s.router.HandleFunc("/static/",  s.staticFileHandler)
+    s.router.HandleFunc("/signout/", s.makeHandler(s.signoutHandler))
+    s.router.HandleFunc("/save/",    s.makeHandler(s.saveHandler))
+    s.router.HandleFunc("/edit/",    s.makeHandler(s.editHandler))
+    s.router.HandleFunc("/delete/",  s.makeHandler(s.deleteHandler))
 
     s.validPath = regexp.MustCompile(
-        "^/(new|view|save|edit|delete|signout)/([0-9]*)$")
+        "^/(new|save|edit|delete|signout)/([0-9]*)$")
 }
 
 /**

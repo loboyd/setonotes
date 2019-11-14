@@ -67,7 +67,7 @@ func (s *Service) InitUserSession(w http.ResponseWriter, r *http.Request,
 
     // generate password-generated key
     log.Println("generating key from password...")
-    key, err := s.generateKeyFromPassword([]byte(password), u.Salt)
+    key, err := s.generateKeyFromPassword([]byte(password), u.EncryptionSalt)
     if err != nil {
         log.Println("failed to generate key from password")
         return err

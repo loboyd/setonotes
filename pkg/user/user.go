@@ -13,6 +13,7 @@ package user
 
 import (
     "log"
+    "encoding/base64"
 )
 
 type User struct {
@@ -23,7 +24,7 @@ type User struct {
     MainKeyEncrypted    []byte
     PrivateKeyEncrypted []byte // encryption service will handle marshaling
     PublicKey           []byte // same for public key
-    Salt                []byte
+    EncryptionSalt      []byte
     AuthSalt            []byte
     Version             int
 }
@@ -134,20 +135,32 @@ func (s *Service) GetByEmail(email string) (*User, error) {
 /**
  * Creates a new user in storage
  *
- * TODO: SECURITY-SENSITIVE -- adjust this so that unencrypted main-keys and
- * password-generated keys do not leave the encryption service
+ * TODO: Decode `authSalt`, `encryptionSalt`, and `mainKeyEncrypted` from
+ *   base-64 before casting to `[]byte`.
  *
  * TODO: This function should check a user doesn't yet exist and then build all
  * the shit necessary for a user given only username, email, and password
  * Also, check username, email, and password are all valid (actually, maybe this
  * should be done in the auth package with unexported functions)
  */
-func (s *Service) Create(username, email, passwordStr string) (*User, error) {
-    // hash password
-    password := []byte(passwordStr)
-    passwordHash, err := s.auth.HashAndSalt(password)
+func (s *Service) Create(username, email, passwordStr, authSaltB64,
+    encryptionSaltB64, mainKeyEncryptedB64 string) (*User, error) {
+
+    // convert stuff from base-64 into byteslices
+    authSalt, err         := base64.StdEncoding.DecodeString(authSaltB64)
     if err != nil {
-        log.Printf("failed to hash and salt password: %v", err)
+        log.Printf("failed to decode authSalt from base-64: %v", err)
+        return nil, err
+    }
+    encryptionSalt, err   := base64.StdEncoding.DecodeString(encryptionSaltB64)
+    if err != nil {
+        log.Printf("failed to decode encryptionSalt from base-64: %v", err)
+        return nil, err
+    }
+    //mainKeyEncrypted, err := base64.StdEncoding.DecodeString(mainKeyEncryptedB64)
+    _, err = base64.StdEncoding.DecodeString(mainKeyEncryptedB64)
+    if err != nil {
+        log.Printf("failed to decode mainKeyEncrypted from base-64: %v", err)
         return nil, err
     }
 
@@ -160,26 +173,11 @@ func (s *Service) Create(username, email, passwordStr string) (*User, error) {
         return nil, err
     }
 
-    // TODO: This needs to be changed such that the unencrypted key-pair is not
-    // handled by any code outside of the encryption package
-    // create new assymetric key pair
-    privateKey, publicKey, err := s.encryption.NewAssymetricKeyPair()
+    // hash password
+    password := []byte(passwordStr)
+    passwordHash, err := s.auth.HashAndSalt(password)
     if err != nil {
-        log.Printf("failed to create assymetric key pair :v", err)
-        return nil, err
-    }
-
-    //  create salt for encryption
-    salt, err := s.encryption.NewSalt()
-    if err != nil {
-        log.Printf("failed to create encryption salt: %v", err)
-        return nil, err
-    }
-
-    //  create salt for authentication
-    authSalt, err := s.encryption.NewSalt()
-    if err != nil {
-        log.Printf("failed to create authentication salt: %v", err)
+        log.Printf("failed to hash and salt password: %v", err)
         return nil, err
     }
 
@@ -187,7 +185,7 @@ func (s *Service) Create(username, email, passwordStr string) (*User, error) {
     // FOR SECURITY PURPOSES
     // create password-generated key
     passwordGeneratedKey, err := s.encryption.GenerateKeyFromPassword(password,
-        salt)
+        encryptionSalt)
     if err != nil {
         log.Printf("failed to generate key from password: %v", err)
         return nil, err
@@ -202,24 +200,15 @@ func (s *Service) Create(username, email, passwordStr string) (*User, error) {
         return nil, err
     }
 
-    // TODO: This will also be moved to the encryption package
-    // encrypt private key
-    privateKeyEncrypted, err := s.encryption.EncryptData(privateKey,
-        passwordGeneratedKey)
-    if err != nil {
-        log.Printf("failed to encrypt private key: %v", err)
-        return nil, err
-    }
-
     u := &User{
         Username:            username,
         Email:               email,
         PasswordHash:        passwordHash,
-        MainKeyEncrypted:    mainKeyEncrypted,
-        PrivateKeyEncrypted: privateKeyEncrypted,
-        PublicKey:           publicKey,
-        Salt:                salt,
-        AuthSalt:            authSalt,
+        MainKeyEncrypted:    []byte(mainKeyEncrypted),
+        //PrivateKeyEncrypted: privateKeyEncrypted,
+        //PublicKey:           publicKey,
+        EncryptionSalt:      []byte(encryptionSalt),
+        AuthSalt:            []byte(authSalt),
         Version:             CurrentVersion,
     }
     userID, err := s.repo.CreateUser(u) // returns -1 userID if err

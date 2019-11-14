@@ -101,7 +101,9 @@ func (s *server) signupHandler(w http.ResponseWriter, r *http.Request) {
         encryptionSalt   := r.FormValue("encryption_salt")
         mainKeyEncrypted := r.FormValue("main_key_encrypted")
 
+        // TODO: REMOVE THIS
         log.Println("auth salt: ", authSalt)
+        log.Println("auth key:  ", password)
 
         // right now, this is checking the username exists in the beta-testers
         // table, but eventually this will check against our imposed conditions

@@ -104,7 +104,7 @@
 function go() {
     let username = document.getElementById("username").value;
 
-    let request_data = JSON.stringify({
+    let requestData = JSON.stringify({
         username: username,
     });
 
@@ -112,32 +112,32 @@ function go() {
         type: "POST",
         url: "/api/salts",
         dataType: 'json',
-        data: request_data,
+        data: requestData,
     })
     .then(function(response){
         // get both authentication and encryption salt
-        let auth_salt = response.auth_salt;
-        console.log('auth salt: ' + auth_salt);
-        let encryption_salt = response.encryption_salt;
+        // TODO: Write base64ToUint8Array()
+        let authSalt = new Uint8Array(base64ToArrayBuffer(response.auth_salt));
+        console.log('auth salt: ' + authSalt);
+        let encryptionSalt = new Uint8Array(base64ToArrayBuffer(response.encryption_salt));
 
         // get submitted password
-        let submitted_password = document.getElementById("password").value;
+        let submittedPassword = document.getElementById("password").value;
 
         // generate and store encryption key
-        getBitsFromPassword(submitted_password, encryption_salt)
-        .then(function(encryption_key){
+        getBitsFromPassword(submittedPassword, encryptionSalt)
+        .then(function(encryptionKey){
             // TODO: store encryption key somewhere
         });
 
         // generate and submit auth key (with username)
-        getBitsFromPassword(submitted_password, auth_salt)
-        .then(function(auth_key){
+        getBitsFromPassword(submittedPassword, authSalt)
+        .then(function(authKey){
             // populate and submit hidden auth form
             document.getElementById("hiddenUsername").value = username;
             document.getElementById("hiddenPassword").value =
-                arrayBufferToBase64(auth_key);
+                arrayBufferToBase64(authKey);
 
-            console.log('base64 auth key: ' + arrayBufferToBase64(auth_key));
             document.getElementById("hiddenAuthForm").submit();
         });
     })
@@ -148,11 +148,13 @@ function go() {
 
 /**
  * Get ArrayBuffer of PBKDF2 bits from the given (password, salt) pair
+ *
+ * `salt` is expected to be of type Uint8(16)
  */
 async function getBitsFromPassword(password, salt) {
     let encoder = new TextEncoder();
 
-    const imported_password = await window.crypto.subtle.importKey(
+    const importedPassword = await window.crypto.subtle.importKey(
         "raw",
         encoder.encode(password),
         {name: "PBKDF2"},
@@ -163,12 +165,11 @@ async function getBitsFromPassword(password, salt) {
     return window.crypto.subtle.deriveBits(
         {
             "name": "PBKDF2",
-            //salt: encoder.encode(salt),
-            salt: base64ToArrayBuffer(salt),
+            salt: salt,
             "iterations": 3e5,
             "hash": "SHA-256"
         },
-        imported_password,
+        importedPassword,
         128
     );
 }
@@ -192,16 +193,16 @@ function arrayBufferToBase64(buffer) {
 }
 
 /**
- * Conver a base-64 string to an ArrayBuffer
+ * Convert a base-64 string to an ArrayBuffer
  * from here:
  *   https://stackoverflow.com/a/21797381/9986578
  */
 function base64ToArrayBuffer(base64) {
-    var binary_string = window.atob(base64);
-    var len = binary_string.length;
+    var binaryString = window.atob(base64);
+    var len = binaryString.length;
     var bytes = new Uint8Array(len);
     for (var i = 0; i < len; i++) {
-        bytes[i] = binary_string.charCodeAt(i);
+        bytes[i] = binaryString.charCodeAt(i);
     }
     return bytes.buffer;
 }

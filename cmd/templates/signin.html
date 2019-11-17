@@ -87,9 +87,10 @@
     </div>
     <div class="input-field">
         <label>password</label><br>
-        <input id="password" type="password" value="">
+        <input id="password" type="password" value=""
+            onkeypress="keyupGo(event);">
     </div>
-    <button onclick="go()"><b>Sign In</b></button>
+    <button onclick="go();"><b>Sign In</b></button>
 </div>
 
 <form id="hiddenAuthForm" method="POST">
@@ -100,6 +101,15 @@
 </body>
 
 <script>
+/**
+ * Run `go()` if ENTER is pressed
+ */
+function keyupGo(e) {
+    if(e.keyCode === 13)
+    {
+        go();
+    }
+}
 
 function go() {
     let username = document.getElementById("username").value;

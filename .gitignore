@@ -9,4 +9,4 @@ logs.txt
 config.json
 easy-markdown-editor
 cmd/static/css/easymde.min.css
-cmd/static/css/easymde.min.js
+cmd/static/js/easymde.min.js

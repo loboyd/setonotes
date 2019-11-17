@@ -90,7 +90,7 @@
         <input id="password" type="password" value=""
             onkeypress="keyupGo(event);">
     </div>
-    <button onclick="go();"><b>Sign In</b></button>
+    <button onclick="handleSignin();"><b>Sign In</b></button>
 </div>
 
 <form id="hiddenAuthForm" method="POST">
@@ -102,16 +102,16 @@
 
 <script>
 /**
- * Run `go()` if ENTER is pressed
+ * Run `handleSignin()` if ENTER is pressed
  */
 function keyupGo(e) {
     if(e.keyCode === 13)
     {
-        go();
+        handleSignin();
     }
 }
 
-function go() {
+function handleSignin() {
     let username = document.getElementById("username").value;
 
     let requestData = JSON.stringify({
@@ -129,7 +129,8 @@ function go() {
         // TODO: Write base64ToUint8Array()
         let authSalt = new Uint8Array(base64ToArrayBuffer(response.auth_salt));
         console.log('auth salt: ' + authSalt);
-        let encryptionSalt = new Uint8Array(base64ToArrayBuffer(response.encryption_salt));
+        let encryptionSalt = new Uint8Array(base64ToArrayBuffer(
+            response.encryption_salt));
 
         // get submitted password
         let submittedPassword = document.getElementById("password").value;

@@ -85,7 +85,7 @@
         <input id="password" type="password" value="" autocomplete="off"
             onkeypress="keyupGo(event);">
     </div>
-    <button onclick="go()"><b>Sign Up</b></button>
+    <button onclick="handleSignup()"><b>Sign Up</b></button>
 </div>
 
 <form id="hiddenAuthForm" method="POST">
@@ -104,16 +104,16 @@
 
 <script>
 /**
- * Run `go()` if ENTER is pressed
+ * Run `handleSignup()` if ENTER is pressed
  */
 function keyupGo(e) {
     if(e.keyCode === 13)
     {
-        go();
+        handleSignup();
     }
 }
 
-function go() {
+function handleSignup() {
     // get submitted username, email, and password
     let submittedUsername = document.getElementById("username").value;
     let submittedEmail    = document.getElementById("email").value;
@@ -144,6 +144,8 @@ function go() {
 
                 document.getElementById("hiddenEncryptionSalt").value
                     = arrayBufferToBase64(encryptionSalt);
+
+                // TODO: Genereate and store encryption key
 
                 console.log('auth salt: ' + arrayBufferToBase64(authSalt));
 

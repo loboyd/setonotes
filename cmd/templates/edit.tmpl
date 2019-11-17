@@ -2,7 +2,7 @@
 {{define "content"}}
 <link rel="stylesheet" href="/static/css/easymde.min.css">
 <script src="/static/js/easymde.min.js" defer></script>
-<script src="/static/js/setonotes.js" defer></script>
+<script src="/static/js/editor.js" defer></script>
 <form id="input-form" action="/save/{{ .ID }}" method="POST">
 <div style="display: none">
     <textarea name="title" rows="1" cols="40">{{printf "%s" .Title}}</textarea>

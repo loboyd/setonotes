@@ -4,14 +4,11 @@
 <script src="/static/js/easymde.min.js" defer></script>
 <script src="/static/js/setonotes.js" defer></script>
 <form id="input-form" action="/save/{{ .ID }}" method="POST">
-<div>
+<div style="display: none">
     <textarea name="title" rows="1" cols="40">{{printf "%s" .Title}}</textarea>
 </div>
 <div>
-    <textarea id="input-body" name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea>
-</div>
-<div>
-    <input type="submit" value="Save">
+    <textarea id="input-body" name="body" style="display: none">{{printf "%s" .Body}}</textarea>
 </div>
 </form>
 {{end}}

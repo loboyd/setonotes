@@ -8,6 +8,12 @@ import (
     //"github.com/setonotes/pkg/user"
 )
 
+/**
+ * Responds with a JSON packet containing the `auth_salt` and `encryption_salt`
+ * for a particular user
+ *
+ * Expects a JSON packet with the key `username` in the request body
+ */
 func (s *server) saltsHandler(w http.ResponseWriter, r *http.Request) {
     log.Println("Getting salts via API...")
 

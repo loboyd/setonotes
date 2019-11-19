@@ -31,7 +31,8 @@ import (
 type userService interface {
     GetByID(userID int) (*user.User, error)
     GetByUsername(username string) (*user.User, error)
-    Create(username, email, password string) (*user.User, error)
+    Create(username, email, password, authSalt, encryptionSalt,
+        mainKeyEncrypted string) (*user.User, error)
     TrackActivity(userID int, path string) error
     CheckBetaTesterWhitelist(username string) (bool, error)
 }
@@ -98,6 +99,7 @@ func newServer(u userService, a authService, p permissionService) *server {
  */
 func (s *server) routes() {
     s.router.HandleFunc("/",         s.homePageHandler)
+    s.router.HandleFunc("/api/salts", s.saltsHandler)
     s.router.HandleFunc("/signup/",  s.signupHandler)
     s.router.HandleFunc("/signin/",  s.signinHandler)
     s.router.HandleFunc("/static/",  s.staticFileHandler)

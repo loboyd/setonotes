@@ -7,6 +7,8 @@ local_https/*
 to_server.zip
 logs.txt
 config.json
+database_schema
+notes
 easy-markdown-editor
 cmd/static/css/easymde.min.css
 cmd/static/js/easymde.min.js

@@ -24,6 +24,7 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
         privateKeyEncrypted []byte
         publicKey           []byte
         salt                []byte
+        authSalt            []byte
         version             int
     )
 
@@ -37,6 +38,7 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
             private_key_encrypted,
             public_key,
             salt,
+            auth_salt,
             version
         FROM users
         WHERE id=$1`
@@ -48,6 +50,7 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
         &privateKeyEncrypted,
         &publicKey,
         &salt,
+        &authSalt,
         &version,
     )
     if err != nil {
@@ -63,7 +66,8 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
         MainKeyEncrypted:    mainKeyEncrypted,
         PrivateKeyEncrypted: privateKeyEncrypted,
         PublicKey:           publicKey,
-        Salt:                salt,
+        EncryptionSalt:      salt,
+        AuthSalt:            authSalt,
         Version:             version,
     }, nil
 }
@@ -112,11 +116,12 @@ func (r *Repository) CreateUser(user *user.User) (int, error) {
             email,
             password_hash,
             main_key_encrypted,
-            private_key_encrypted,
-            public_key,
+            /*private_key_encrypted,
+              public_key,*/
             salt,
+            auth_salt,
             version)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id`
     var userID int
     err := r.DB.QueryRow(psqlStmt,
@@ -124,9 +129,10 @@ func (r *Repository) CreateUser(user *user.User) (int, error) {
         user.Email,
         user.PasswordHash,
         user.MainKeyEncrypted,
-        user.PrivateKeyEncrypted,
-        user.PublicKey,
-        user.Salt,
+        //user.PrivateKeyEncrypted,
+        //user.PublicKey,
+        user.EncryptionSalt,
+        user.AuthSalt,
         user.Version,
     ).Scan(&userID)
     if err != nil {

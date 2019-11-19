@@ -3,7 +3,8 @@ go build \
 main.go \
 server.go \
 handlers.go \
-user_auth.go
+user_auth.go \
+api.go
 
 # build and arrange EasyMDE if it exists
 if [ -d ../easy-markdown-editor ]; then

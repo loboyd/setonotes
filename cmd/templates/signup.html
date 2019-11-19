@@ -2,15 +2,233 @@
 <html>
 <head>
     <meta charset="UTF-8" />
+    <style>
+    html {
+        height: 100%;
+    }
+
+    body {
+        font-family: sans-serif;
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+        background-image: linear-gradient(#383f89, #8d2b2c);
+    }
+
+    .signup-container {
+        color: white;
+        max-width: 250px;
+        margin: 100px auto;
+        padding: 5% 4%;
+    }
+
+    .signup-string, a {
+        text-align: center;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    label {
+        font-size: 0.9em;
+    }
+
+    input, button {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        border: 1px solid white;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    button, input[type="submit"] {
+        padding: 7px 20px;
+        color: #573663;
+        background-color: #e1d2d2;
+        font-size: 1em;
+        font-weight: bold;
+    }
+
+    input{
+        background-color: #441c6800;
+        color: white;
+        caret-color: white;
+    }
+
+    input[type=text] {
+    }
+
+    input[type=text]:focus {
+    }
+
+    input[type=password] {
+    }
+
+    input[type=password]:focus {
+    }
+    </style>
 </head>
 <body>
-<div>
-    <form method="POST" action "/signup">
-        <label>username</label><input name="username" type="text" value="">
-        <label>email</label><input name="email" type="text" value="">
-        <label>password</label><input name="password" type="password" value="">
-        <input type="submit" value="sign up" />
-    </form>
+<div class="signup-container">
+    <p class="signup-string"><a href="/">setonotes</a></p>
+    <div class="input-field">
+        <label>username</label>
+        <input id="username" type="text" value="" autofocus autocomplete="off">
+    </div>
+    <div class="input-field">
+        <label>email</label>
+        <input id="email" type="text" value="" autocomplete="off">
+    </div>
+    <div class="input-field">
+        <label>password</label>
+        <input id="password" type="password" value="" autocomplete="off"
+            onkeypress="keyupGo(event);">
+    </div>
+    <button onclick="handleSignup()"><b>Sign Up</b></button>
+</div>
+
+<form id="hiddenAuthForm" method="POST">
+    <input id="hiddenUsername" type="hidden" name="username"  value="">
+    <input id="hiddenEmail"    type="hidden" name="email"     value="">
+    <input id="hiddenPassword" type="hidden" name="password"  value="">
+    <input id="hiddenAuthSalt" type="hidden" name="auth_salt" value="">
+    <input id="hiddenEncryptionSalt"   type="hidden" name="encryption_salt"
+        value="">
+    <input id="hiddenMainKeyEncrypted" type="hidden" name="main_key_encrypted"
+        value="">
+</form>
+
 </div>
 </body>
+
+<script>
+/**
+ * Run `handleSignup()` if ENTER is pressed
+ */
+function keyupGo(e) {
+    if(e.keyCode === 13)
+    {
+        handleSignup();
+    }
+}
+
+function handleSignup() {
+    // get submitted username, email, and password
+    let submittedUsername = document.getElementById("username").value;
+    let submittedEmail    = document.getElementById("email").value;
+    let submittedPassword = document.getElementById("password").value;
+
+    // generate encryption salt
+    getSalt128().then(function(encryptionSalt){
+        // generate encryption key and store it
+
+        // generate authentication salt
+        getSalt128().then(function(authSalt){
+            // generate auth key
+            getBitsFromPassword(submittedPassword, authSalt)
+            .then(function(authKey){
+                // populate and submit signup form
+                document.getElementById("hiddenUsername").value
+                    = submittedUsername;
+
+                document.getElementById("hiddenEmail").value
+                    = submittedEmail;
+
+                document.getElementById("hiddenPassword").value
+                    = arrayBufferToBase64(authKey);
+                console.log('TEST. auth key: ' + arrayBufferToBase64(authKey));
+
+                document.getElementById("hiddenAuthSalt").value
+                    = arrayBufferToBase64(authSalt);
+
+                document.getElementById("hiddenEncryptionSalt").value
+                    = arrayBufferToBase64(encryptionSalt);
+
+                // TODO: Genereate and store encryption key
+
+                console.log('auth salt: ' + arrayBufferToBase64(authSalt));
+
+                /*
+                // TODO: CHANGE THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                document.getElementById("hiddenMainKeyEncrypted").value
+                    = arrayBufferToBase64(authSalt);
+                */
+
+                document.getElementById("hiddenAuthForm").submit();
+            });
+        });
+    });
+}
+
+/**
+ * Get ArrayBuffer of PBKDF2 bits from the given (password, salt) pair
+ *
+ * `salt` is expected to be of type Uint8(16)
+ */
+async function getBitsFromPassword(password, salt) {
+    let encoder = new TextEncoder();
+
+    const imported_password = await window.crypto.subtle.importKey(
+        "raw",
+        encoder.encode(password),
+        {name: "PBKDF2"},
+        false,
+        ["deriveBits", "deriveKey"]
+    );
+
+    return window.crypto.subtle.deriveBits(
+        {
+            "name": "PBKDF2",
+            salt: salt,
+            "iterations": 3e5,
+            "hash": "SHA-256"
+        },
+        imported_password,
+        128
+    );
+}
+
+/**
+ * Generate a random 128-bit salt
+ */
+async function getSalt128(){
+    return window.crypto.getRandomValues(new Uint8Array(16)); // 16 bytes
+}
+
+/**
+ * Convert an ArrayBuffer to a base-64 string
+ * from here:
+ *   https://stackoverflow.com/questions/9267899
+ *   /arraybuffer-to-base64-encoded-string
+ */
+function arrayBufferToBase64(buffer) {
+    let binary = '';
+    let bytes = new Uint8Array(buffer);
+    let len = bytes.byteLength;
+
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+
+    return window.btoa(binary);
+}
+
+/**
+ * Convert a base-64 string to an ArrayBuffer
+ * from here:
+ *   https://stackoverflow.com/a/21797381/9986578
+ */
+function base64ToArrayBuffer(base64) {
+    var binary_string = window.atob(base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+</script>
+
 </html>

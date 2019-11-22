@@ -25,6 +25,7 @@ import (
     "github.com/setonotes/pkg/user"
     "github.com/setonotes/pkg/page"
 
+    "github.com/gorilla/mux"
     "github.com/oxtoacart/bpool"
 )
 
@@ -54,7 +55,7 @@ type permissionService interface {
 }
 
 type server struct {
-    router           *http.ServeMux
+    router            *mux.Router
     templates         map[string]*template.Template
     bufpool           *bpool.BufferPool // used for template rendering
 
@@ -74,7 +75,7 @@ type server struct {
 */
 func newServer(u userService, a authService, p permissionService) *server {
     s := &server{
-        router:            http.NewServeMux(),
+        router:            mux.NewRouter(),
         userService:       u,
         authService:       a,
         permissionService: p,

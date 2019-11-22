@@ -38,7 +38,7 @@ type userService interface {
 }
 
 type authService interface {
-    CheckUserAuthStatus(r *http.Request) (int, bool, error)
+    CheckAuthStatusCookie(r *http.Request) (int, bool, error)
     InitUserSession(w http.ResponseWriter, r *http.Request, u *user.User,
         password []byte) error
     EndUserSession(w http.ResponseWriter, r *http.Request, userID int) error

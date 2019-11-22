@@ -188,9 +188,28 @@ func (s *Service) EndUserSession(w http.ResponseWriter, r *http.Request,
 }
 
 /**
+ * Check client's authentication status given a bearer token (UUID string)
+ */
+func (s *Service) CheckBearerToken(bearerToken string) (int, bool, error) {
+    log.Println("checking bearer token...")
+
+    // look for token in cache
+    log.Println("looking for bearer token in cache...")
+    response, err := s.sessionCache.GetInt(bearerToken)
+    if err != nil {
+        log.Println("failed to get bearer token from cache")
+        return 0, false, err
+    }
+    log.Println("successfully got bearer token from cache")
+
+    // return true if no issues above
+    return response, true, nil
+}
+
+/**
  * Check user's authentication status given *http.Request (containing cookies)
  */
-func (s *Service) CheckUserAuthStatus(r *http.Request) (int, bool, error) {
+func (s *Service) CheckAuthStatusCookie(r *http.Request) (int, bool, error) {
     log.Println("looking for session token cookie...")
     c, err := r.Cookie("session_token")
     if err != nil {
@@ -199,7 +218,10 @@ func (s *Service) CheckUserAuthStatus(r *http.Request) (int, bool, error) {
     }
     log.Println("successfully found session token cookie")
     sessionToken := c.Value
+    log.Println("sessionToken: ", sessionToken)
 
+    return s.CheckBearerToken(sessionToken)
+    /*
     // look for token in cache
     log.Println("looking for session token in cache...")
     response, err := s.sessionCache.GetInt(sessionToken)
@@ -211,6 +233,7 @@ func (s *Service) CheckUserAuthStatus(r *http.Request) (int, bool, error) {
 
     // return true if no issues above
     return response, true, nil
+    */
 }
 
 /**

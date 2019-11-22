@@ -18,7 +18,7 @@ func (s *server) makeHandler(fn func (http.ResponseWriter, *http.Request,
     return func(w http.ResponseWriter, r *http.Request) {
         // check authentication status
         log.Println("checking user auth status...")
-        userID, authorized, err := s.authService.CheckUserAuthStatus(r)
+        userID, authorized, err := s.authService.CheckAuthStatusCookie(r)
         if err != nil {
             log.Println("failed to check user auth status")
             http.NotFound(w, r)
@@ -63,7 +63,7 @@ func (s *server) homePageHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     // check user-authorization status
-    userID, authorized, _ := s.authService.CheckUserAuthStatus(r)
+    userID, authorized, _ := s.authService.CheckAuthStatusCookie(r)
     if authorized {
         // show user-specific directory
         s.directoryHandler(w, r, userID, authorized)

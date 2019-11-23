@@ -1755,12 +1755,9 @@ EasyMDE.prototype.markdown = function (text) {
             markedOptions = {};
         }
 
-        // Update options
-        if (this.options && this.options.renderingConfig && this.options.renderingConfig.singleLineBreaks === false) {
-            markedOptions.breaks = false;
-        } else {
-            markedOptions.breaks = true;
-        }
+        // make sure single line breaks don't appear in the output
+        // this makes it so that paragraphs display correctly
+        markedOptions.breaks = false;
 
         if (this.options && this.options.renderingConfig && this.options.renderingConfig.codeSyntaxHighlighting === true) {
 

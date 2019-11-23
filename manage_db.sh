@@ -7,9 +7,10 @@
 #
 # Usage:
 #
-# Dump the current database to output_db-schema.psql and output_db-all.psql
+# Dump the current database to YYYYmmdd-HHMMSS-schema-only.psql and
+# YYYYmmdd-HHMMSS-all.psql
 #
-#     manage_db.sh --dump output_db
+#     manage_db.sh --dump
 #
 # Attempt to load input_db.psql
 # (note that this may overwrite the current database, depending on the contents
@@ -21,22 +22,29 @@
 set -e
 
 case $1 in
+	# if the first argument is --dump
 	"--dump")
-		echo "dumping schema to $2-schema.psql..."
+		# then proceed with dumping
+		FILE_PREFIX=$(date +%Y%m%d-%H%M%S)
+		echo "dumping schema to $FILE_PREFIX-schema.psql..."
 		sudo -u postgres pg_dump setonotes --schema-only --clean \
-			> $2-schema-only.psql
-		echo "dumping data to $2-all.psql..."
-		sudo -u postgres pg_dump setonotes --clean > $2-all.psql
-		echo "dumped schema and data to $2-{schema,all}.psql"
-		;;
+			> $FILE_PREFIX-schema-only.psql
+		echo "dumping data to $FILE_PREFIX-all.psql..."
+		sudo -u postgres pg_dump setonotes --clean \
+			> $FILE_PREFIX-all.psql
+		echo "dumped schema and data to $FILE_PREFIX-{schema,all}.psql"
+		;; # no fallthrough to other cases
+	# if the first argument is --load
 	"--load")
+		# then attempt to load whatever's in the second argument
 		echo "loading from $2..."
 		sudo -u postgres psql setonotes < $2
 		echo "loaded $2 successfully"
 		;;
+	# if the first argument isn't --dump or --load
 	*)
-		echo -n "usage: manage_db.sh <--load <input_psql> | "
-		echo    "--dump <output_psql>>"
+		# then show usage and exit
+		echo "usage: manage_db.sh <--dump | --load <input_psql>>"
 		exit 1
 		;;
 esac

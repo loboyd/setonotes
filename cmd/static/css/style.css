@@ -1,6 +1,3 @@
-{{ define "style" }}
-<style>
-
 body {
     margin: 0 auto;
     max-width: 50em;
@@ -44,6 +41,3 @@ a {
     min-height: 50em;
     word-wrap: normal;
 }
-
-</style>
-{{ end }}

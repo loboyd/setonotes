@@ -27,6 +27,6 @@ document.onkeydown = function(evt) {
         easyMDE.isEditor = false;
     // if the user presses CTRL+Enter, then save and exit
     } else if (evt.keyCode == 13 && evt.ctrlKey) {
-        document.getElementById("input-form").submit();
+        easyMDE.saveNote();
     }
 };

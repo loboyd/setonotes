@@ -898,6 +898,22 @@ function togglePreview(editor) {
         toggleSideBySide(editor);
 }
 
+
+/**
+ * Save note action.
+ */
+function saveNote(editor) {
+    // copy the first line into the title form element
+    var firstLine = editor.codemirror.getLine(0);
+    firstLine = firstLine.replace('#', ' ');
+    firstLine = firstLine.trim();
+    document.getElementById('input-title').value = firstLine;
+
+    // submit the hidden form
+    document.getElementById('input-form').submit();
+}
+
+
 function _replaceSelection(cm, active, startEnd, url) {
     if (/editor-preview-active/.test(cm.getWrapperElement().lastChild.className))
         return;
@@ -1237,10 +1253,6 @@ function wordCount(data) {
         }
     }
     return count;
-}
-
-function saveNote() {
-    document.getElementById('input-form').submit();
 }
 
 var toolbarBuiltInButtons = {
@@ -2477,6 +2489,7 @@ EasyMDE.redo = redo;
 EasyMDE.togglePreview = togglePreview;
 EasyMDE.toggleSideBySide = toggleSideBySide;
 EasyMDE.toggleFullScreen = toggleFullScreen;
+EasyMDE.saveNote= saveNote;
 
 /**
  * Bind instance methods for exports.
@@ -2599,6 +2612,10 @@ EasyMDE.prototype.toTextArea = function () {
         this.autosaveTimeoutId = undefined;
         this.clearAutosavedValue();
     }
+};
+
+EasyMDE.prototype.saveNote = function () {
+    saveNote(this);
 };
 
 module.exports = EasyMDE;

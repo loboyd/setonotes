@@ -19,7 +19,7 @@
 .CodeMirror-fullscreen {
     background: #fff;
     position: fixed !important;
-    top: 50px;
+    top: 60px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -73,7 +73,7 @@
 
 .editor-toolbar.fullscreen {
     width: 100%;
-    height: 50px;
+    height: 60px;
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
@@ -89,6 +89,7 @@
     left: 0;
     opacity: 1;
     z-index: 9;
+    text-align: right;
 }
 
 .editor-toolbar.fullscreen::before {
@@ -128,8 +129,8 @@
     display: inline-block;
     text-align: center;
     text-decoration: none !important;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     margin: 0;
     padding: 0;
     border: 1px solid transparent;

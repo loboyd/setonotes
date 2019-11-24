@@ -21,3 +21,9 @@ pre {
     padding: 16px;
     border-left: 2px solid #69c;
 }
+
+/* set icon size
+ * need to use !important in order to override font-awesome.css */
+.fa {
+    font-size: 24px!important;
+}

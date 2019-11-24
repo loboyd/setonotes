@@ -843,7 +843,6 @@ function togglePreview(editor) {
     var toolbar = editor.options.toolbar ? editor.toolbarElements.preview : false;
     var preview = wrapper.lastChild;
     if (!preview || !/editor-preview-full/.test(preview.className)) {
-
         preview = document.createElement('div');
         preview.className = 'editor-preview-full';
 
@@ -861,7 +860,13 @@ function togglePreview(editor) {
 
         wrapper.appendChild(preview);
     }
+    // runs when editor launches
     if (/editor-preview-active/.test(preview.className)) {
+
+        var scrollTargetFraction = preview.scrollTop / (preview.scrollHeight -
+                preview.clientHeight);
+
+        // not really sure how this bit works, but it seems to hide the preview and show the editor
         preview.className = preview.className.replace(
             /\s*editor-preview-active\s*/g, ''
         );
@@ -869,7 +874,24 @@ function togglePreview(editor) {
             toolbar.className = toolbar.className.replace(/\s*active\s*/g, '');
             toolbar_div.className = toolbar_div.className.replace(/\s*disabled-for-preview*/g, '');
         }
+
+        // scroll editor to approximate preview position and drop cursor there
+        var editorScrollInfo = cm.getScrollInfo();
+        var scrollTargetPosition = scrollTargetFraction *
+                    (editorScrollInfo['height'] -
+                     editorScrollInfo['clientHeight']);
+        cm.scrollTo(0, scrollTargetPosition);
+        var targetLineNumber = Math.round(scrollTargetFraction * cm.lineCount());
+        cm.setCursor({line: targetLineNumber, ch: 0});
+        cm.scrollIntoView({line: targetLineNumber, ch: 0});
+        setTimeout(function(){cm.focus();},10);
+    // runs when preview launches
     } else {
+        editorScrollInfo = cm.getScrollInfo();
+        scrollTargetFraction = editorScrollInfo['top'] /
+                    (editorScrollInfo['height'] -
+                     editorScrollInfo['clientHeight']);
+
         // When the preview button is clicked for the first time,
         // give some time for the transition from editor.css to fire and the view to slide from right to left,
         // instead of just appearing.
@@ -880,8 +902,18 @@ function togglePreview(editor) {
             toolbar.className += ' active';
             toolbar_div.className += ' disabled-for-preview';
         }
+
+        preview.innerHTML = editor.options.previewRender(editor.value(), preview);
+
+        // for some reason, waiting a moment before scrolling the preview
+        // seems to make it happy
+        setTimeout(function(){
+            scrollTargetPosition = scrollTargetFraction * (preview.scrollHeight
+                    - preview.clientHeight);
+            preview.scrollTo(0, scrollTargetPosition);
+            preview.focus();
+        }, 1);
     }
-    preview.innerHTML = editor.options.previewRender(editor.value(), preview);
 
     // Turn off side by side if needed
     var sidebyside = cm.getWrapperElement().nextSibling;

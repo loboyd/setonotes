@@ -218,6 +218,7 @@
 }
 
 .editor-preview-full {
+    text-align: justify;
     position: absolute;
     width: 100%;
     height: 100%;

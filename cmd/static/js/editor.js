@@ -12,16 +12,26 @@ document.onkeydown = function(evt) {
     evt = evt || window.event;
     //console.log(evt);
     // if the user presses `i` and the editor isn't active, then launch the editor
-    if (evt.keyCode == 73 && !easyMDE.isEditor) {
+    if (evt.key == 'i' || evt.key == 'a' && !evt.ctrlKey && !evt.shiftKey &&
+	    !easyMDE.isEditor) {
         evt.preventDefault();
         easyMDE.togglePreview();
         easyMDE.isEditor = true;
     // if the user presses `ESC` and the editor is active, then collapse the editor
-    } else if (evt.keyCode == 27 && easyMDE.isEditor) {
+    } else if (evt.key == 'Escape' && !evt.ctrlKey && !evt.shiftKey &&
+	    easyMDE.isEditor) {
         easyMDE.togglePreview();
         easyMDE.isEditor = false;
     // if the user presses CTRL+Enter, then save and exit
-    } else if (evt.keyCode == 13 && evt.ctrlKey) {
+    } else if (evt.key == 'Enter' && evt.ctrlKey && !evt.shiftKey) {
         easyMDE.saveNote();
+    // `j` scrolls down in preview mode
+    } else if (evt.key == 'j' && !evt.ctrlKey && !evt.shiftKey) {
+        evt.preventDefault();
+        previewDiv.scrollBy(0, 100);
+    // 'k' scrolls up in preview mode
+    } else if (evt.key == 'k' && !evt.ctrlKey && !evt.shiftKey) {
+        evt.preventDefault();
+        previewDiv.scrollBy(0,-100);
     }
 };

@@ -863,8 +863,14 @@ function togglePreview(editor) {
     // runs when editor launches
     if (/editor-preview-active/.test(preview.className)) {
 
-        var scrollTargetFraction = preview.scrollTop / (preview.scrollHeight -
+        // if there is no scrolling to be done, then set the target to zero
+        if (preview.scrollHeight == preview.clientHeight) {
+            var scrollTargetFraction = 0;
+        // otherwise, calculate the scroll target fraction
+        } else {
+            scrollTargetFraction = preview.scrollTop / (preview.scrollHeight -
                 preview.clientHeight);
+        }
 
         // not really sure how this bit works, but it seems to hide the preview and show the editor
         preview.className = preview.className.replace(

@@ -27,3 +27,13 @@ pre {
 .fa {
     font-size: 24px!important;
 }
+
+/* set the style for the title field in the editor */
+#editor-title {
+    font-size: 32px;
+    font-weight: bold;
+    margin: 20px 0 20px 0;
+    outline: none;
+    border: none;
+    width: 100%;
+}

@@ -905,6 +905,16 @@ function togglePreview(editor) {
 
         preview.innerHTML = editor.options.previewRender(editor.value(), preview);
 
+        // put whatever is in the title field in the editor back into the hidden field
+        document.getElementById('input-title').value = document.getElementById('editor-title').value;
+
+        // create an h1 that contains the note title
+        // we have to create this every time the preview launches because the markdown renderer gets rid of it
+        var previewTitle = document.createElement('h1');
+        previewTitle.appendChild(document.createTextNode(document.getElementById('input-title').value));
+        previewTitle.id = 'preview-title';
+        preview.insertBefore(previewTitle, preview.childNodes[0]);
+
         // for some reason, waiting a moment before scrolling the preview
         // seems to make it happy
         setTimeout(function(){
@@ -925,12 +935,9 @@ function togglePreview(editor) {
 /**
  * Save note action.
  */
-function saveNote(editor) {
-    // copy the first line into the title form element
-    var firstLine = editor.codemirror.getLine(0);
-    firstLine = firstLine.replace('#', ' ');
-    firstLine = firstLine.trim();
-    document.getElementById('input-title').value = firstLine;
+function saveNote() {
+    // copy whatever is in the editor's title field back into the hidden form element
+    document.getElementById('input-title').value = document.getElementById('editor-title').value;
 
     // submit the hidden form
     document.getElementById('input-form').submit();

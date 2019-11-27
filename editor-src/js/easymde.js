@@ -887,7 +887,7 @@ function togglePreview(editor) {
                     (editorScrollInfo['height'] -
                      editorScrollInfo['clientHeight']);
         cm.scrollTo(0, scrollTargetPosition);
-        var targetLineNumber = Math.round(scrollTargetFraction * cm.lineCount());
+        var targetLineNumber = Math.round(scrollTargetFraction * (cm.lineCount() - 1));
         cm.setCursor({line: targetLineNumber, ch: cm.getLine(targetLineNumber).length});
         cm.scrollIntoView({line: targetLineNumber, ch: 0});
         setTimeout(function(){cm.focus();},10);

@@ -7,6 +7,7 @@ require('codemirror/mode/markdown/markdown.js');
 require('codemirror/addon/mode/overlay.js');
 require('codemirror/addon/display/placeholder.js');
 require('codemirror/addon/selection/mark-selection.js');
+require('codemirror/addon/selection/active-line.js');
 require('codemirror/addon/search/searchcursor.js');
 require('codemirror/mode/gfm/gfm.js');
 require('codemirror/mode/xml/xml.js');
@@ -1750,6 +1751,7 @@ EasyMDE.prototype.render = function (el) {
         placeholder: options.placeholder || el.getAttribute('placeholder') || '',
         styleSelectedText: (options.styleSelectedText != undefined) ? options.styleSelectedText : !isMobile(),
         configureMouse: configureMouse,
+        styleActiveLine: {nonEmpty: true},
     });
 
     this.codemirror.getScrollerElement().style.minHeight = options.minHeight;

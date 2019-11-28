@@ -37,3 +37,9 @@ pre {
     border: none;
     width: 100%;
 }
+
+blockquote {
+    background: #eee;
+    padding: 1px 2% 1px 2%;
+    border-left: 2px solid #69c;
+}

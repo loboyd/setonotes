@@ -4,7 +4,6 @@
     border: 1px solid #ddd;
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
-    padding: 10px;
     font: inherit;
     z-index: 1;
     word-wrap: break-word;
@@ -12,8 +11,10 @@
 
 .CodeMirror-scroll {
     cursor: text;
-    padding-left: 15%;
+    padding-left: 1%;
     padding-right: 15%;
+    margin-left: 14%;
+    border-left: 1px solid gray;
 }
 
 .CodeMirror-fullscreen {
@@ -313,17 +314,19 @@
 .cm-s-easymde .cm-comment {
     background: rgba(0, 0, 0, .05);
     border-radius: 2px;
+    font-family: monospace;
+    padding-top: 3pt;
 }
 
 .cm-s-easymde .cm-link {
-    color: #7f8c8d;
+    color: blue;
 }
 
 .cm-s-easymde .cm-url {
-    color: #aab2b3;
+    color: gray;
 }
 
 .cm-s-easymde .cm-quote {
-    color: #7f8c8d;
+    color: gray;
     font-style: italic;
 }

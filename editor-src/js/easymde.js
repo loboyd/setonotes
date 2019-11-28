@@ -1640,6 +1640,16 @@ EasyMDE.prototype.markdown = function (text) {
         // Set options
         marked.setOptions(markedOptions);
 
+	// In order to display math correctly, inline formatting control
+        // characters have to be escaped before they go into the markdown
+        // renderer
+        text = text.replace(/\$.*\$/gi, function(match) {
+            var escapedMath = match;
+            escapedMath = escapedMath.replace('*','\\*');
+            escapedMath = escapedMath.replace('_','\\_');
+            return escapedMath;
+        });
+
         // Convert the markdown to HTML
         var htmlText = marked(text);
 

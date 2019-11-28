@@ -19,6 +19,20 @@ previewDiv = document.getElementsByClassName("editor-preview-full")[0];
 previewDiv.tabIndex='0';
 setTimeout(function(){previewDiv.focus();},10);
 
+mathDelimiters = [
+    {left: "$$",  right: "$$",  display: true},
+    {left: "\\[", right: "\\]", display: true},
+    {left: "$",   right: "$",   display: false},
+    {left: "\\(", right: "\\)", display: false},
+];
+renderMathInElement(document.body, {delimiters: mathDelimiters});
+
+function escapeMarkdown(unescapedMarkdown) {
+    escapedMarkdown = unescapedMarkdown.replace('*','\*');
+
+    return escapedMarkdown;
+}
+
 // capture keystrokes for editor control
 document.onkeydown = function(evt) {
     evt = evt || window.event;
@@ -32,6 +46,10 @@ document.onkeydown = function(evt) {
     } else if (evt.key == 'Escape' && !evt.ctrlKey && !evt.shiftKey &&
 	   !easyMDE.isPreviewActive()) {
         easyMDE.togglePreview();
+	// this math rendering should really go inside togglePreview(), but I
+        // couldn't figure out how to do that easily, so for now it lives
+        // here TODO
+        renderMathInElement(document.body, {delimiters: mathDelimiters});
     // if the user presses CTRL+Enter, then save and exit
     } else if (evt.key == 'Enter' && evt.ctrlKey && !evt.shiftKey) {
         easyMDE.saveNote();

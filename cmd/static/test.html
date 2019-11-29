@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title>test</title>
+</head>
+<body>
+    <button style="float: right;" onclick="go()">click me!</button>
+
+<script>
+function go() {
+    // len("session_token=") == 14
+    let sessionToken = document.cookie.substr(14);
+
+    $.ajax({
+        url: "/api/pages/188",
+        type: "GET",
+        headers: {
+            'Authorization': `Bearer ${sessionToken}`
+        },
+        dataType: 'json',
+    })
+    .then(function(response){
+        console.log(response);
+    });
+}
+</script>
+
+</body>
+</html>

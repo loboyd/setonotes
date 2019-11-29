@@ -6,6 +6,8 @@ import (
     "strconv"
     "net/http"
     "crypto/sha256"
+    "strings"
+    "errors"
 
     "github.com/setonotes/pkg/user"
 
@@ -62,7 +64,7 @@ func (s *Service) InitUserSession(w http.ResponseWriter, r *http.Request,
         Value:    sessionToken,
         Expires:  time.Now().Add(86400 * time.Second),
         Path:     "/",
-        HttpOnly: true,
+        //HttpOnly: true,
     })
 
     // generate password-generated key
@@ -188,40 +190,11 @@ func (s *Service) EndUserSession(w http.ResponseWriter, r *http.Request,
 }
 
 /**
- * Check client's authentication status given a bearer token (UUID string)
+ * Check client's authentication status given a session token (UUID string)
  */
-func (s *Service) CheckBearerToken(bearerToken string) (int, bool, error) {
-    log.Println("checking bearer token...")
+func (s *Service) checkSessionToken(sessionToken string) (int, bool, error) {
+    log.Println("checking session token...")
 
-    // look for token in cache
-    log.Println("looking for bearer token in cache...")
-    response, err := s.sessionCache.GetInt(bearerToken)
-    if err != nil {
-        log.Println("failed to get bearer token from cache")
-        return 0, false, err
-    }
-    log.Println("successfully got bearer token from cache")
-
-    // return true if no issues above
-    return response, true, nil
-}
-
-/**
- * Check user's authentication status given *http.Request (containing cookies)
- */
-func (s *Service) CheckAuthStatusCookie(r *http.Request) (int, bool, error) {
-    log.Println("looking for session token cookie...")
-    c, err := r.Cookie("session_token")
-    if err != nil {
-        log.Println("failed to find session token cookie")
-        return 0, false, err
-    }
-    log.Println("successfully found session token cookie")
-    sessionToken := c.Value
-    log.Println("sessionToken: ", sessionToken)
-
-    return s.CheckBearerToken(sessionToken)
-    /*
     // look for token in cache
     log.Println("looking for session token in cache...")
     response, err := s.sessionCache.GetInt(sessionToken)
@@ -233,7 +206,41 @@ func (s *Service) CheckAuthStatusCookie(r *http.Request) (int, bool, error) {
 
     // return true if no issues above
     return response, true, nil
-    */
+}
+
+/**
+ * Check user's authentication status given *http.Request containing
+ * `session_token` cookie
+ */
+func (s *Service) CheckAuthStatusCookie(r *http.Request) (int, bool, error) {
+    log.Println("looking for session token cookie...")
+    c, err := r.Cookie("session_token")
+    if err != nil {
+        log.Println("failed to find session token cookie")
+        return 0, false, err
+    }
+    log.Println("successfully found session token cookie")
+    sessionToken := c.Value
+
+    return s.checkSessionToken(sessionToken)
+}
+
+/**
+ * Check user's authenciation status given *http.Request containing bearer
+ * token `Authorization` header
+ */
+func (s *Service) CheckAuthStatusBearer(r *http.Request) (int, bool, error) {
+    // get bearer token
+    log.Println("looking for session token header...")
+    sessionToken := r.Header.Get("Authorization")
+    splitToken := strings.Split(sessionToken, "Bearer")
+    if len(splitToken) != 2 {
+        return 0, false, errors.New("improper bearer token format");
+    }
+    log.Println("successfully found bearer token")
+    sessionToken = strings.TrimSpace(splitToken[1])
+
+    return s.checkSessionToken(sessionToken)
 }
 
 /**

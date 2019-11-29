@@ -40,6 +40,7 @@ type userService interface {
 
 type authService interface {
     CheckAuthStatusCookie(r *http.Request) (int, bool, error)
+    CheckAuthStatusBearer(r *http.Request) (int, bool, error)
     InitUserSession(w http.ResponseWriter, r *http.Request, u *user.User,
         password []byte) error
     EndUserSession(w http.ResponseWriter, r *http.Request, userID int) error
@@ -51,7 +52,7 @@ type permissionService interface {
     SavePage(p *page.Page, u *user.User) (int, error)
     LoadAndDecryptPage(pageID int, u *user.User) (*page.Page, error)
     DeletePage(pageID, userID int) error
-
+    GetPageAndKey(userID, pageID int) (*page.Page, []byte, error)
 }
 
 type server struct {
@@ -99,15 +100,26 @@ func newServer(u userService, a authService, p permissionService) *server {
  * Defines all routes for the site
  */
 func (s *server) routes() {
-    s.router.HandleFunc("/",         s.homePageHandler)
+    //s.router.Host("localhost")
+    s.router.HandleFunc("/",          s.homePageHandler)
     s.router.HandleFunc("/api/salts", s.saltsHandler)
+
+    // page API
+    s.router.HandleFunc("/api/pages/{id}", s.getPage).Methods("GET")
+    s.router.HandleFunc("/api/pages",      s.savePage).Methods("POST")
+    s.router.HandleFunc("/api/pages/{id}", s.savePage).Methods("POST")
+    s.router.HandleFunc("/api/pages/{id}", s.deletePage).Methods("DELETE")
+
     s.router.HandleFunc("/signup/",  s.signupHandler)
     s.router.HandleFunc("/signin/",  s.signinHandler)
-    s.router.HandleFunc("/static/",  s.staticFileHandler)
     s.router.HandleFunc("/signout/", s.makeHandler(s.signoutHandler))
     s.router.HandleFunc("/save/",    s.makeHandler(s.saveHandler))
     s.router.HandleFunc("/edit/",    s.makeHandler(s.editHandler))
     s.router.HandleFunc("/delete/",  s.makeHandler(s.deleteHandler))
+
+    // serve static files from the /static/ directory
+    s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
+        http.FileServer(http.Dir("static"))))
 
     s.validPath = regexp.MustCompile(
         "^/(new|save|edit|delete|signout)/([0-9]*)$")

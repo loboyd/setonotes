@@ -4,9 +4,77 @@ import (
     "log"
     "net/http"
     "encoding/json"
+    "strconv"
 
     //"github.com/setonotes/pkg/user"
+    "github.com/setonotes/pkg/page"
+
+    "github.com/gorilla/mux"
 )
+
+/* TODO: finish this
+*/
+func (s *server) savePage(w http.ResponseWriter, r *http.Request) {
+    log.Println("Inside the pages handler...")
+    // check authentication
+
+    // check authorization(?)
+
+    // get URL variables
+
+    // return page as JSON
+}
+
+/**
+ * Get a page and return as JSON
+ */
+func (s *server) getPage(w http.ResponseWriter, r *http.Request) {
+    log.Println("Inside the pages handler...")
+
+    // check authorization with bearer token
+    userID, authorized, err := s.authService.CheckAuthStatusBearer(r)
+    if err != nil {
+        log.Printf("error checking bearer token: %v", err)
+        return
+    } else {
+        if !authorized {
+            log.Println("unauthorized")
+            return
+        }
+    }
+
+    // get URL variables
+    pageID, err := strconv.Atoi(mux.Vars(r)["id"])
+    if err != nil {
+        log.Printf("error converting page ID to string: %v", err)
+        return
+    }
+    log.Println("page ID: ", pageID)
+
+    // get page and key
+    p, key, err := s.permissionService.GetPageAndKey(pageID, userID)
+
+    // make JSON packet with the response data
+    response := struct {
+        Page *page.Page `json:"page"`
+        Key      []byte `json:"key"`
+    }{
+        p,
+        key,
+    }
+
+    log.Println("Responding with JSON packet containing page and key...")
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(response)
+}
+
+/**
+ *
+ */
+func (s *server) deletePage(w http.ResponseWriter, r *http.Request) {
+}
 
 /**
  * Responds with a JSON packet containing the `auth_salt` and `encryption_salt`

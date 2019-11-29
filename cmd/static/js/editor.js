@@ -3,12 +3,13 @@ var easyMDE = new EasyMDE({ element: document.getElementById("input-body") });
 easyMDE.toggleFullScreen();
 
 // add a title field to the editor
-var editorArea = document.getElementsByClassName('CodeMirror-sizer')[0];
+var editorArea = document.getElementsByClassName('CodeMirror-sizer')[0].firstChild;
 var editorTitle = document.createElement('input');
 editorTitle.value = document.getElementById('input-title').value;
 editorTitle.id = 'editor-title';
 editorTitle.autocomplete = 'off';
 editorTitle.type = 'text';
+editorTitle.onclick = function(){ this.focus(); }; // override codemirror focus
 editorArea.insertBefore(editorTitle, editorArea.childNodes[0]);
 
 // launch into preview mode

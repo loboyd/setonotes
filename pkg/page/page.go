@@ -12,11 +12,11 @@ import (
 )
 
 type Page struct {
-    ID      int
-    Title   []byte
-    Body    []byte
-    OwnerID int
-    Version int
+    ID      int    `json:"id"`
+    Title   []byte `json:"title"`
+    Body    []byte `json:"body"`
+    OwnerID int    `json:"owner_id"`
+    Version int    `json:"version"`
 }
 
 type Repository interface {

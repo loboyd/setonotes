@@ -160,6 +160,31 @@ func (s *Service) CheckUserCanEditPage(userID, pageID int) (bool, error) {
 }
 
 /**
+ * Return page with user-encrypted page key
+ */
+func (s *Service) GetPageAndKey(pageID, userID int) (*page.Page, []byte,
+    error) {
+
+    log.Printf("getting page-%v for user-%v", pageID, userID)
+
+    // get page
+    p, err := s.pageService.GetByID(pageID)
+    if err != nil {
+        log.Println("failed to get page by ID")
+        return nil, nil, err
+    }
+
+    // get key
+    key, err := s.GetUserEncryptedPageKey(userID, pageID)
+    if err != nil {
+        log.Println("failed to get page-key")
+        return nil, nil, err
+    }
+
+    return p, key, nil
+}
+
+/** TODO: deprecate this
  * Given a pageID and user, load, decrypt, and return a page
  */
 func (s *Service) LoadAndDecryptPage(pageID int,

@@ -64,5 +64,10 @@ document.onkeydown = function(evt) {
 	    easyMDE.isPreviewActive()) {
         evt.preventDefault();
         previewDiv.scrollBy(0,-100);
+    // 'Backspace' goes back to the directory in preview mode
+    } else if (evt.key == 'Backspace' && !evt.ctrlKey &&
+	    !evt.shiftKey && easyMDE.isPreviewActive()) {
+        evt.preventDefault();
+        window.location.href = '../../';
     }
 };

@@ -41,8 +41,6 @@ var bindings = {
     'drawHorizontalRule': drawHorizontalRule,
     'undo': undo,
     'redo': redo,
-    'toggleSideBySide': toggleSideBySide,
-    'toggleFullScreen': toggleFullScreen,
 };
 
 var shortcuts = {
@@ -57,9 +55,6 @@ var shortcuts = {
     'toggleOrderedList': 'Cmd-Alt-L',
     'toggleUnorderedList': 'Cmd-L',
     'toggleCodeBlock': 'Cmd-Alt-C',
-    'togglePreview': 'Cmd-P',
-    'toggleSideBySide': 'F9',
-    'toggleFullScreen': 'F11',
 };
 
 var getBindingName = function (f) {
@@ -892,6 +887,17 @@ function togglePreview(editor) {
         cm.setCursor({line: targetLineNumber, ch: cm.getLine(targetLineNumber).length});
         cm.scrollIntoView({line: targetLineNumber, ch: 0});
         setTimeout(function(){cm.focus();},10);
+
+        // change the edit icon to a preview icon
+        document.getElementsByClassName('fa-edit')[0].className = 'fa fa-eye';
+        document.getElementsByClassName('edit')[0].title = 'Preview (Escape)';
+
+        // hide toolbar buttons related to editing
+        var formattingButtons = document.getElementsByClassName('fmt-button');
+        for (i=0; i<formattingButtons.length; i++) {
+            formattingButtons[i].style.display = '';
+            console.log(formattingButtons[i]);
+        }
     // runs when preview launches
     } else {
         editorScrollInfo = cm.getScrollInfo();
@@ -930,6 +936,17 @@ function togglePreview(editor) {
             preview.scrollTo(0, scrollTargetPosition);
             preview.focus();
         }, 1);
+
+        // change the edit icon to a preview icon
+        document.getElementsByClassName('fa-eye')[0].className = 'fa fa-edit';
+        document.getElementsByClassName('edit')[0].title = 'Edit ("i" or "a")';
+
+        // show toolbar buttons related to editing
+        formattingButtons = document.getElementsByClassName('fmt-button');
+        for (i=0; i<formattingButtons.length; i++) {
+            console.log(formattingButtons[i]);
+            formattingButtons[i].style.display = 'none';
+        }
     }
 
     // Turn off side by side if needed
@@ -1293,6 +1310,105 @@ function wordCount(data) {
 }
 
 var toolbarBuiltInButtons = {
+    'bold': {
+        name: 'bold',
+        action: toggleBold,
+        className: 'fa fa-bold fmt-button',
+        title: 'Bold',
+        default: true,
+    },
+    'italic': {
+        name: 'italic',
+        action: toggleItalic,
+        className: 'fa fa-italic fmt-button',
+        title: 'Italic',
+        default: true,
+    },
+    'strikethrough': {
+        name: 'strikethrough',
+        action: toggleStrikethrough,
+        className: 'fa fa-strikethrough fmt-button',
+        title: 'Strikethrough',
+        default: true,
+    },
+    'heading': {
+        name: 'heading',
+        action: toggleHeadingSmaller,
+        className: 'fa fa-header fa-heading fmt-button',
+        title: 'Heading',
+        default: true,
+    },
+    'edit': {
+        name: 'edit',
+        action: togglePreview,
+        className: 'fa fa-eye',
+        noDisable: true,
+        title: 'Edit ("i" or "a")',
+        default: true,
+    },
+    'code': {
+        name: 'code',
+        action: toggleCodeBlock,
+        className: 'fa fa-code fmt-button',
+        title: 'Code',
+        default: true,
+    },
+    'quote': {
+        name: 'quote',
+        action: toggleBlockquote,
+        className: 'fa fa-quote-left fmt-button',
+        title: 'Quote',
+        default: true,
+    },
+    'unordered-list': {
+        name: 'unordered-list',
+        action: toggleUnorderedList,
+        className: 'fa fa-list-ul fmt-button',
+        title: 'Generic List',
+        default: true,
+    },
+    'ordered-list': {
+        name: 'ordered-list',
+        action: toggleOrderedList,
+        className: 'fa fa-list-ol fmt-button',
+        title: 'Numbered List',
+        default: true,
+    },
+    'clean-block': {
+        name: 'clean-block',
+        action: cleanBlock,
+        className: 'fa fa-eraser fmt-button',
+        title: 'Clean block',
+        default: true,
+    },
+    'link': {
+        name: 'link',
+        action: drawLink,
+        className: 'fa fa-link fmt-button',
+        title: 'Create Link',
+        default: true,
+    },
+    'image': {
+        name: 'image',
+        action: drawImage,
+        className: 'fa fa-image fmt-button',
+        title: 'Insert Image',
+        default: true,
+    },
+    'table': {
+        name: 'table',
+        action: drawTable,
+        className: 'fa fa-table fmt-button',
+        title: 'Insert Table',
+        default: true,
+    },
+    'horizontal-rule': {
+        name: 'horizontal-rule',
+        action: drawHorizontalRule,
+        className: 'fa fa-minus fmt-button',
+        title: 'Insert Horizontal Line',
+        default: true,
+    },
     'save': {
         name: 'save',
         action: saveNote,

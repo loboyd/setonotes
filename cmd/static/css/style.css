@@ -43,3 +43,7 @@ blockquote {
     padding: 1px 2% 1px 2%;
     border-left: 2px solid #69c;
 }
+
+.fmt-button {
+    float: left;
+}

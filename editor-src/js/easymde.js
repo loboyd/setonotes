@@ -896,7 +896,6 @@ function togglePreview(editor) {
         var formattingButtons = document.getElementsByClassName('fmt-button');
         for (i=0; i<formattingButtons.length; i++) {
             formattingButtons[i].style.display = '';
-            console.log(formattingButtons[i]);
         }
     // runs when preview launches
     } else {
@@ -944,7 +943,6 @@ function togglePreview(editor) {
         // show toolbar buttons related to editing
         formattingButtons = document.getElementsByClassName('fmt-button');
         for (i=0; i<formattingButtons.length; i++) {
-            console.log(formattingButtons[i]);
             formattingButtons[i].style.display = 'none';
         }
     }
@@ -965,6 +963,22 @@ function saveNote() {
 
     // submit the hidden form
     document.getElementById('input-form').submit();
+}
+
+
+/**
+ * Back to directory action.
+ */
+function backToDirectory() {
+    window.location.href = '../../';
+}
+
+
+/**
+ * Delete note action.
+ */
+function deleteNote() {
+    console.log('delete note');
 }
 
 
@@ -1338,14 +1352,6 @@ var toolbarBuiltInButtons = {
         title: 'Heading',
         default: true,
     },
-    'edit': {
-        name: 'edit',
-        action: togglePreview,
-        className: 'fa fa-eye',
-        noDisable: true,
-        title: 'Edit ("i" or "a")',
-        default: true,
-    },
     'code': {
         name: 'code',
         action: toggleCodeBlock,
@@ -1407,6 +1413,33 @@ var toolbarBuiltInButtons = {
         action: drawHorizontalRule,
         className: 'fa fa-minus fmt-button',
         title: 'Insert Horizontal Line',
+        default: true,
+    },
+    'back': {
+        name: 'back',
+        action: backToDirectory,
+        className: 'fa fa-arrow-left',
+        noDisable: true,
+        title: 'Back (Backspace)',
+        default: true,
+    },
+    'delete': {
+        name: 'delete',
+        action: deleteNote,
+        className: 'fa fa-trash',
+        noDisable: true,
+        title: 'Delete Note',
+        default: true,
+    },
+    'separator-1': {
+        name: 'separator-1',
+    },
+    'edit': {
+        name: 'edit',
+        action: togglePreview,
+        className: 'fa fa-eye',
+        noDisable: true,
+        title: 'Edit ("i" or "a")',
         default: true,
     },
     'save': {

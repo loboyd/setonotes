@@ -1,5 +1,6 @@
 // initialize the editor
 var easyMDE = new EasyMDE({ element: document.getElementById("input-body") });
+var initialEditorValue = easyMDE.value();
 easyMDE.toggleFullScreen();
 
 // add a title field to the editor
@@ -71,3 +72,10 @@ document.onkeydown = function(evt) {
         window.location.href = '../../';
     }
 };
+
+// if the user tries to leave without saving, prompt them
+window.onbeforeunload = function(evt) {
+    if (easyMDE.value() != initialEditorValue) {
+        return true;
+    }
+}

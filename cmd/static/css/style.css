@@ -25,7 +25,7 @@ pre {
 /* set icon size
  * need to use !important in order to override font-awesome.css */
 .fa {
-    font-size: 24px!important;
+    font-size: 20px!important;
 }
 
 /* set the style for the title field in the editor */

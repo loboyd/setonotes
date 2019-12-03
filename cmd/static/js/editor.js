@@ -2,6 +2,7 @@
 var easyMDE = new EasyMDE({ element: document.getElementById("input-body") });
 var initialEditorValue = easyMDE.value();
 easyMDE.toggleFullScreen();
+easyMDE.tryingToSave = false;
 
 // add a title field to the editor
 var editorArea = document.getElementsByClassName('CodeMirror-sizer')[0].firstChild;
@@ -75,7 +76,7 @@ document.onkeydown = function(evt) {
 
 // if the user tries to leave without saving, prompt them
 window.onbeforeunload = function(evt) {
-    if (easyMDE.value() != initialEditorValue) {
+    if (easyMDE.value() != initialEditorValue && !easyMDE.tryingToSave) {
         return true;
     }
 }

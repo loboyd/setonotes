@@ -957,7 +957,11 @@ function togglePreview(editor) {
 /**
  * Save note action.
  */
-function saveNote() {
+function saveNote(editor) {
+    // the user is trying to save, so make sure we don't bother them about
+    // leaving unsaved changes
+    editor.tryingToSave = true;
+
     // copy whatever is in the editor's title field back into the hidden form element
     document.getElementById('input-title').value = document.getElementById('editor-title').value;
 

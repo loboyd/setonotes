@@ -4,17 +4,112 @@ import (
     "log"
     "net/http"
     "encoding/json"
+    b64 "encoding/base64"
     "strconv"
 
-    //"github.com/setonotes/pkg/user"
     "github.com/setonotes/pkg/page"
 
     "github.com/gorilla/mux"
 )
 
+/**
+ * Handle the POST /pages/{id} API call
+ *
+ * The request data should contain `key`, `title`, and `body` fields of the
+ * page encoded as base-64 strings:
+ *  {
+ *    "page": {
+ *      "key": "some-base64-string",
+ *      "title": "another-base64-string",
+ *      "body": "final-base64-string",
+ *    }
+ *  }
+ */
+func (s *server) createPage(w http.ResponseWriter, r *http.Request) {
+    log.Println("Inside the pages handler...")
+
+    // check authentication with bearer token
+    userID, authorized, err := s.authService.CheckAuthStatusBearer(r)
+    if err != nil || !authorized {
+        log.Println("unauthorized")
+        http.Error(w, http.StatusText(http.StatusUnauthorized),
+            http.StatusUnauthorized)
+        return
+    }
+    log.Println("successfully confirmed authorization")
+
+    // get user
+    u, err := s.userService.GetByID(userID)
+    if err != nil {
+        log.Println("failed to get user by ID for POST api/pages")
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return
+    }
+    log.Println("successfully retrieved user", u.ID)
+
+    type data struct {
+        Key string   `json:"key"`
+        Title string `json:"title"`
+        Body string  `json:"body"`
+    }
+
+    // get request body
+    decoder := json.NewDecoder(r.Body)
+    var d data
+    err = decoder.Decode(&d)
+    if err != nil {
+        log.Printf("error decoding JSON request body: %v", err)
+        http.Error(w, http.StatusText(http.StatusBadRequest),
+            http.StatusBadRequest)
+        return;
+    }
+
+    key,   err1 := b64.StdEncoding.DecodeString(d.Key)
+    title, err2 := b64.StdEncoding.DecodeString(d.Title)
+    body,  err3 := b64.StdEncoding.DecodeString(d.Body)
+    if err1 != nil || err2 != nil || err3 != nil {
+        log.Printf("error decoding base64 values in JSON  body: %v, %v, %v",
+            err1, err2, err3)
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return;
+    }
+
+    // build the page
+    p := &page.Page{
+        ID: 0,
+        Title: title,
+        Body:  body,
+        OwnerID: userID ,
+    }
+
+    // create the page
+    pageID, err := s.permissionService.CreatePage(p, u, key)
+    if err != nil {
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return
+    }
+    log.Println("successfully saved page", pageID)
+
+    // send JSON packet containing newly-created ID
+    new_id := struct {
+        ID int `json:"id"`
+    }{
+        pageID,
+    }
+
+    log.Println("Responding with JSON packet containing new page ID...")
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(new_id)
+}
+
 /* TODO: finish this
 */
-func (s *server) savePage(w http.ResponseWriter, r *http.Request) {
+func (s *server) updatePage(w http.ResponseWriter, r *http.Request) {
     log.Println("Inside the pages handler...")
     // check authentication
 
@@ -31,28 +126,33 @@ func (s *server) savePage(w http.ResponseWriter, r *http.Request) {
 func (s *server) getPage(w http.ResponseWriter, r *http.Request) {
     log.Println("Inside the pages handler...")
 
-    // check authorization with bearer token
+    // check authentication with bearer token
     userID, authorized, err := s.authService.CheckAuthStatusBearer(r)
-    if err != nil {
-        log.Printf("error checking bearer token: %v", err)
+    if err != nil || !authorized {
+        log.Println("unauthorized")
+        http.Error(w, http.StatusText(http.StatusUnauthorized),
+            http.StatusUnauthorized)
         return
-    } else {
-        if !authorized {
-            log.Println("unauthorized")
-            return
-        }
     }
 
     // get URL variables
     pageID, err := strconv.Atoi(mux.Vars(r)["id"])
     if err != nil {
         log.Printf("error converting page ID to string: %v", err)
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
         return
     }
     log.Println("page ID: ", pageID)
 
     // get page and key
     p, key, err := s.permissionService.GetPageAndKey(pageID, userID)
+    if err != nil {
+        log.Printf("error getting page and key: %v", err)
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return;
+    }
 
     // make JSON packet with the response data
     response := struct {
@@ -124,7 +224,7 @@ func (s *server) saltsHandler(w http.ResponseWriter, r *http.Request) {
     log.Println("Responding with JSON packet of salts...")
 
     w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusCreated)
+    w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(salts)
 }
 

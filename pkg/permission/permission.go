@@ -210,49 +210,11 @@ func (s *Service) LoadAndDecryptPage(pageID int,
 }
 
 /**
- * Encrypt and save page -- check existance and update page or create new page,
- * encryption is performed by the update/create function
- *
- * returns page ID
- */
-func (s *Service) SavePage(p *page.Page, u *user.User) (int, error) {
-    log.Println("saving page...")
-
-    // check existance
-    log.Println("checking page existance...")
-    pageExists, err := s.repo.CheckPageExists(p.ID)
-    if err != nil {
-        log.Println("failed to check page existance")
-        return 0, err
-    }
-
-    if pageExists {
-        log.Println("page already exists; updating page...")
-        pageID, err := s.updatePage(p, u)
-        if err != nil {
-            log.Println("failed to update page")
-            return 0, err
-        }
-        log.Println("updated page successfully")
-        return pageID, nil
-    }
-
-    log.Println("new page; creating entry...")
-    pageID, err := s.createPage(p, u)
-    if err != nil {
-        log.Println("failed to create new entry")
-        return 0, err
-    }
-    log.Println("successfully created new entry")
-    return pageID, nil
-}
-
-/**
  * Update page's Title and Body attributes in storage
  *
  * Returns page ID
  */
-func (s *Service) updatePage(p *page.Page, u *user.User) (int, error) {
+func (s *Service) UpdatePage(p *page.Page, u *user.User) (int, error) {
     // check the the given user has permission to update the given page
     // this should probably ultimately be handled by a `permission` package
     canEdit, err := s.CheckUserCanEditPage(u.ID, p.ID)
@@ -262,13 +224,6 @@ func (s *Service) updatePage(p *page.Page, u *user.User) (int, error) {
     }
     if !canEdit {
         log.Printf("user-%v cannot edit page-%v", u.ID, p.ID)
-        return 0, err
-    }
-
-    // encrypt page
-    err = s.UserEncryptPage(u, p)
-    if err != nil {
-        log.Printf("failed to encrypt page-%v for user-%v", p.ID, u.ID)
         return 0, err
     }
 
@@ -298,7 +253,9 @@ func (s *Service) updatePage(p *page.Page, u *user.User) (int, error) {
  *
  * returns page ID
  */
-func (s *Service) createPage(p *page.Page, u *user.User) (int, error) {
+func (s *Service) CreatePage(p *page.Page, u *user.User,
+    userEncryptedPageKey []byte) (int, error) {
+
     // Create page with empty byteslices for Title and Body. This allows us to
     // get a meaninful ID from the database (eventually this will be replaced
     // with UUID or something else). Further down we will update this page.
@@ -315,14 +272,6 @@ func (s *Service) createPage(p *page.Page, u *user.User) (int, error) {
     // update page with meaningful ID
     p.ID = pageID
 
-    // create new symmetric key for page
-    log.Println("creating symmetric key for new page...")
-    userEncryptedPageKey, err := s.encryption.NewUserEncryptedSymmetricKey(u)
-    if err != nil {
-        return 0, err
-    }
-    log.Println("successfully created new page key")
-
     // create new page permission and store user-encrypted page key
     // is-owner and can-edit flags are both set
     log.Println("creating new page permission...")
@@ -331,7 +280,7 @@ func (s *Service) createPage(p *page.Page, u *user.User) (int, error) {
     log.Println("successfully created page permission")
 
     // update page with actual Title and Body fields
-    pageID, err = s.updatePage(p, u)
+    pageID, err = s.UpdatePage(p, u)
     if err != nil {
         log.Println("failed to update Title and Body attributed for new page")
         return 0, err

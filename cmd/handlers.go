@@ -5,7 +5,7 @@ import (
     "strconv"
     "net/http"
 
-    "github.com/setonotes/pkg/page"
+    //"github.com/setonotes/pkg/page"
 )
 
 /**
@@ -131,6 +131,7 @@ func newlineDoctor(text []byte) []byte {
     return text
 }
 
+/* TODO: REMOVE THIS
 func (s *server) editHandler(w http.ResponseWriter, r *http.Request, pageID int,
     userID int, authorized bool) {
 
@@ -174,7 +175,9 @@ func (s *server) editHandler(w http.ResponseWriter, r *http.Request, pageID int,
 
     s.renderTemplate(w, "edit.tmpl", data)
 }
+*/
 
+/* TODO: REMOVE THIS
 func (s *server) saveHandler(w http.ResponseWriter, r *http.Request, pageID int,
     userID int, authorized bool) {
 
@@ -205,7 +208,9 @@ func (s *server) saveHandler(w http.ResponseWriter, r *http.Request, pageID int,
 
     http.Redirect(w, r, "/", http.StatusFound)
 }
+*/
 
+/* TODO: REMOVE THIS
 func (s *server) deleteHandler(w http.ResponseWriter, r *http.Request,
     pageID int, userID int, authorized bool) {
 
@@ -224,4 +229,5 @@ func (s *server) deleteHandler(w http.ResponseWriter, r *http.Request,
     }
     http.Redirect(w, r, "/", http.StatusFound)
 }
+*/
 

@@ -5,19 +5,43 @@
     <title>test</title>
 </head>
 <body>
-    <button style="float: right;" onclick="go()">click me!</button>
+    <button style="float: right;" onclick="testGetPage()">click me!</button>
 
 <script>
-function go() {
+function testGetPage() {
+    // TODO: Make this work in the case where there is more than one cookie
     // len("session_token=") == 14
     let sessionToken = document.cookie.substr(14);
 
     $.ajax({
-        url: "/api/pages/188",
+        url: "/api/pages/198",
         type: "GET",
         headers: {
             'Authorization': `Bearer ${sessionToken}`
         },
+        dataType: 'json',
+    })
+    .then(function(response){
+        console.log(response);
+    });
+}
+
+function testCreatePage() {
+    // TODO: Make this work in the case where there is more than one cookie
+    // len("session_token=") == 14
+    let sessionToken = document.cookie.substr(14);
+
+    $.ajax({
+        url: "/api/pages",
+        type: "POST",
+        headers: {
+            'Authorization': `Bearer ${sessionToken}`
+        },
+        data: JSON.stringify({
+            'key': 'dGhpcy1pcy10aGUta2V5',
+            'title': 'dGhpcy1pcy10aGUtdGl0bGU=',
+            'body': 'dGhpcy1pcy10aGUtYm9keQ==',
+        }),
         dataType: 'json',
     })
     .then(function(response){

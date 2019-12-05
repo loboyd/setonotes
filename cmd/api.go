@@ -13,19 +13,100 @@ import (
 )
 
 /**
- * Handle the POST /pages/{id} API call
+ * Handle the POST /pages API call
  *
- * The request data should contain `key`, `title`, and `body` fields of the
- * page encoded as base-64 strings:
+ * The request data should be a JSON packet with a `key` field encoded as a
+ * base-64 string:
  *  {
- *    "page": {
- *      "key": "some-base64-string",
- *      "title": "another-base64-string",
- *      "body": "final-base64-string",
- *    }
+ *    "key": "YXdlc29tZS1rZXk=",
+ *  }
+ *
+ * A JSON packet containing the ID of the created page is returned:
+ *  {
+ *    "id": 201,
  *  }
  */
 func (s *server) createPage(w http.ResponseWriter, r *http.Request) {
+    log.Println("Inside the pages handler...")
+    // check authentication
+    userID, authorized, err := s.authService.CheckAuthStatusBearer(r)
+    if err != nil || !authorized {
+        log.Println("unauthorized")
+        http.Error(w, http.StatusText(http.StatusUnauthorized),
+            http.StatusUnauthorized)
+        return
+    }
+    log.Println("successfully confirmed authorization")
+
+    // get user
+    u, err := s.userService.GetByID(userID)
+    if err != nil {
+        log.Println("failed to get user by ID for POST api/pages")
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return
+    }
+    log.Println("successfully retrieved user", u.ID)
+
+    type data struct {
+        Key string  `json:"key"`
+    }
+
+    // get request body
+    decoder := json.NewDecoder(r.Body)
+    var d data
+    err = decoder.Decode(&d)
+    if err != nil {
+        log.Printf("error decoding JSON request body: %v", err)
+        http.Error(w, http.StatusText(http.StatusBadRequest),
+            http.StatusBadRequest)
+        return;
+    }
+
+    key, err := b64.StdEncoding.DecodeString(d.Key)
+    if err != nil {
+        log.Printf("error decoding base64 values in JSON  body: %v", err)
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return;
+    }
+
+    // create the page
+    pageID, err := s.permissionService.CreatePage(u, key)
+    if err != nil {
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return
+    }
+
+    // send JSON packet containing newly-created ID
+    new_id := struct {
+        ID int `json:"id"`
+    }{
+        pageID,
+    }
+
+    log.Println("Responding with JSON packet containing new page ID...")
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(new_id)
+}
+
+/**
+ * Handle the POST /pages/{id} API call
+ *
+ * The request data should be a JSON packet with the following structure:
+ *  {
+ *    "page": {
+ *      "title": "some-base64-string",
+ *      "body": "another-base64-string",
+ *    }
+ *  }
+ *
+ * No data is returned.
+ */
+func (s *server) updatePage(w http.ResponseWriter, r *http.Request) {
     log.Println("Inside the pages handler...")
 
     // check authentication with bearer token
@@ -48,8 +129,17 @@ func (s *server) createPage(w http.ResponseWriter, r *http.Request) {
     }
     log.Println("successfully retrieved user", u.ID)
 
+    // get URL variables
+    pageID, err := strconv.Atoi(mux.Vars(r)["id"])
+    if err != nil {
+        log.Printf("error converting page ID to string: %v", err)
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return
+    }
+    log.Println("page ID: ", pageID)
+
     type data struct {
-        Key string   `json:"key"`
         Title string `json:"title"`
         Body string  `json:"body"`
     }
@@ -65,12 +155,11 @@ func (s *server) createPage(w http.ResponseWriter, r *http.Request) {
         return;
     }
 
-    key,   err1 := b64.StdEncoding.DecodeString(d.Key)
-    title, err2 := b64.StdEncoding.DecodeString(d.Title)
-    body,  err3 := b64.StdEncoding.DecodeString(d.Body)
-    if err1 != nil || err2 != nil || err3 != nil {
-        log.Printf("error decoding base64 values in JSON  body: %v, %v, %v",
-            err1, err2, err3)
+    title, err1 := b64.StdEncoding.DecodeString(d.Title)
+    body,  err2 := b64.StdEncoding.DecodeString(d.Body)
+    if err1 != nil || err2 != nil {
+        log.Printf("error decoding base64 values in JSON  body: %v, %v", err1,
+            err2)
         http.Error(w, http.StatusText(http.StatusInternalServerError),
             http.StatusInternalServerError)
         return;
@@ -78,50 +167,39 @@ func (s *server) createPage(w http.ResponseWriter, r *http.Request) {
 
     // build the page
     p := &page.Page{
-        ID: 0,
+        ID: pageID,
         Title: title,
         Body:  body,
-        OwnerID: userID ,
+        OwnerID: userID,
     }
 
-    // create the page
-    pageID, err := s.permissionService.CreatePage(p, u, key)
+    // update the page
+    err = s.permissionService.UpdatePage(p, u)
     if err != nil {
         http.Error(w, http.StatusText(http.StatusInternalServerError),
             http.StatusInternalServerError)
         return
     }
-    log.Println("successfully saved page", pageID)
-
-    // send JSON packet containing newly-created ID
-    new_id := struct {
-        ID int `json:"id"`
-    }{
-        pageID,
-    }
-
-    log.Println("Responding with JSON packet containing new page ID...")
 
     w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(new_id)
-}
-
-/* TODO: finish this
-*/
-func (s *server) updatePage(w http.ResponseWriter, r *http.Request) {
-    log.Println("Inside the pages handler...")
-    // check authentication
-
-    // check authorization(?)
-
-    // get URL variables
-
-    // return page as JSON
+    w.WriteHeader(http.StatusOK)
 }
 
 /**
- * Get a page and return as JSON
+ * Handle the GET /pages/{id} API call
+ *
+ * No request data is expected.
+ *
+ * The response data is a JSON packet with the following structure:
+ *  {
+ *    "page": {
+ *      "id": id,
+ *      "title": "some-base64-string",
+ *      "body": "another-base64-string",
+ *      "owner_id": another_id,
+ *    },
+ *    "key": "more-base64"
+ *  }
  */
 func (s *server) getPage(w http.ResponseWriter, r *http.Request) {
     log.Println("Inside the pages handler...")

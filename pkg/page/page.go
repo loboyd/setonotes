@@ -16,7 +16,6 @@ type Page struct {
     Title   []byte `json:"title"`
     Body    []byte `json:"body"`
     OwnerID int    `json:"owner_id"`
-    Version int    `json:"version"`
 }
 
 type Repository interface {

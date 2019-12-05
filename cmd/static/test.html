@@ -5,7 +5,7 @@
     <title>test</title>
 </head>
 <body>
-    <button style="float: right;" onclick="testGetPage()">click me!</button>
+    <button style="float: right;" onclick="testUpdatePage()">click me!</button>
 
 <script>
 function testGetPage() {
@@ -14,7 +14,7 @@ function testGetPage() {
     let sessionToken = document.cookie.substr(14);
 
     $.ajax({
-        url: "/api/pages/198",
+        url: "/api/pages/201",
         type: "GET",
         headers: {
             'Authorization': `Bearer ${sessionToken}`
@@ -38,9 +38,29 @@ function testCreatePage() {
             'Authorization': `Bearer ${sessionToken}`
         },
         data: JSON.stringify({
-            'key': 'dGhpcy1pcy10aGUta2V5',
-            'title': 'dGhpcy1pcy10aGUtdGl0bGU=',
-            'body': 'dGhpcy1pcy10aGUtYm9keQ==',
+            'key': 'YXdlc29tZS1rZXk=',
+        }),
+        dataType: 'json',
+    })
+    .then(function(response){
+        console.log(response);
+    });
+}
+
+function testUpdatePage() {
+    // TODO: Make this work in the case where there is more than one cookie
+    // len("session_token=") == 14
+    let sessionToken = document.cookie.substr(14);
+
+    $.ajax({
+        url: "/api/pages/201",
+        type: "POST",
+        headers: {
+            'Authorization': `Bearer ${sessionToken}`
+        },
+        data: JSON.stringify({
+            'title': 'bmV3LXRpdGxl',
+            'body': 'bmV3LWJvZHk=',
         }),
         dataType: 'json',
     })

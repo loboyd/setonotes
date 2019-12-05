@@ -49,8 +49,8 @@ type authService interface {
 
 type permissionService interface {
     GetPageTitles(u *user.User) (map[int][]byte, error)
-    CreatePage(p *page.Page, u *user.User, userEncryptedKey []byte) (int, error)
-    UpdatePage(p *page.Page, u *user.User) (int, error)
+    CreatePage(u *user.User, userEncryptedKey []byte) (int, error)
+    UpdatePage(p *page.Page, u *user.User) error
     LoadAndDecryptPage(pageID int, u *user.User) (*page.Page, error)
     DeletePage(pageID, userID int) error
     GetPageAndKey(userID, pageID int) (*page.Page, []byte, error)

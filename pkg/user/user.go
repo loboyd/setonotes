@@ -26,15 +26,7 @@ type User struct {
     PublicKey           []byte // same for public key
     EncryptionSalt      []byte
     AuthSalt            []byte
-    Version             int
 }
-
-/**
- * The version number is used for updating accounts.
- * Version 1 was the old encryption scheme, encrypting all pages with the MD5
- * hash of the sole owner's password
- */
-const CurrentVersion = 2
 
 /**
  * The Repository interface contains all the user-relevant functions from the
@@ -209,7 +201,6 @@ func (s *Service) Create(username, email, passwordStr, authSaltB64,
         //PublicKey:           publicKey,
         EncryptionSalt:      []byte(encryptionSalt),
         AuthSalt:            []byte(authSalt),
-        Version:             CurrentVersion,
     }
     userID, err := s.repo.CreateUser(u) // returns -1 userID if err
     u.ID = userID

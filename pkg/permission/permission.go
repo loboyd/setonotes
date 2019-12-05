@@ -17,7 +17,7 @@ import (
 type Repository interface {
     CheckPageExists(pageID int) (bool, error)
     UpdatePage(p *page.Page) error
-    CreatePage(p *page.Page, userID int) (int, error) // returns pageID
+    CreatePage(userID int) (int, error) // returns pageID
     DeletePage(pageID int) error
     GetUserEncryptedPageKey(userID, pageID int) ([]byte, error)
     GetUserDisembodiedPages(userID int) ([]*page.Page, error)
@@ -214,17 +214,17 @@ func (s *Service) LoadAndDecryptPage(pageID int,
  *
  * Returns page ID
  */
-func (s *Service) UpdatePage(p *page.Page, u *user.User) (int, error) {
+func (s *Service) UpdatePage(p *page.Page, u *user.User) error {
     // check the the given user has permission to update the given page
     // this should probably ultimately be handled by a `permission` package
     canEdit, err := s.CheckUserCanEditPage(u.ID, p.ID)
     if err != nil {
         log.Println("failed to check permission")
-        return 0, err
+        return err
     }
     if !canEdit {
         log.Printf("user-%v cannot edit page-%v", u.ID, p.ID)
-        return 0, err
+        return err
     }
 
     // store page
@@ -232,12 +232,12 @@ func (s *Service) UpdatePage(p *page.Page, u *user.User) (int, error) {
     err = s.repo.UpdatePage(p)
     if err != nil {
         // should we decrypt the page in memory here?
-        log.Println("failed to update page-%v", p.ID)
-        return 0, err
+        log.Printf("failed to update page-%v", p.ID)
+        return err
     }
     log.Printf("succesfully stored updated page-%v", p.ID)
 
-    return p.ID, nil
+    return nil
 }
 
 /**
@@ -253,38 +253,26 @@ func (s *Service) UpdatePage(p *page.Page, u *user.User) (int, error) {
  *
  * returns page ID
  */
-func (s *Service) CreatePage(p *page.Page, u *user.User,
-    userEncryptedPageKey []byte) (int, error) {
+func (s *Service) CreatePage(u *user.User, userEncryptedPageKey []byte) (int,
+    error) {
 
     // Create page with empty byteslices for Title and Body. This allows us to
     // get a meaninful ID from the database (eventually this will be replaced
     // with UUID or something else). Further down we will update this page.
     log.Println("generating ID for new page...")
-    pageID, err := s.repo.CreatePage(
-        &page.Page{Title: []byte(``), Body: []byte(``)},
-        u.ID)
+    pageID, err := s.repo.CreatePage(u.ID)
     if err != nil {
         log.Println("failed to generate ID")
         return 0, err
     }
     log.Println("successfully generated ID")
 
-    // update page with meaningful ID
-    p.ID = pageID
-
     // create new page permission and store user-encrypted page key
     // is-owner and can-edit flags are both set
     log.Println("creating new page permission...")
-    s.repo.CreatePagePermission(u.ID, p.ID, true, true,
+    s.repo.CreatePagePermission(u.ID, pageID, true, true,
         userEncryptedPageKey)
     log.Println("successfully created page permission")
-
-    // update page with actual Title and Body fields
-    pageID, err = s.UpdatePage(p, u)
-    if err != nil {
-        log.Println("failed to update Title and Body attributed for new page")
-        return 0, err
-    }
 
     return pageID, nil
 }

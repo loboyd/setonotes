@@ -31,6 +31,22 @@ func (r *Repository) CreatePagePermission(userID, pageID int, isOwner,
 }
 
 /**
+ * Delete all permissions for a given page
+ */
+func (r *Repository) DeleteAllPagePermissions(pageID int) error {
+    log.Printf("deleting page-%v rows from page_permissions table...", pageID)
+    psqlStmt := `
+        DELETE FROM page_permissions
+        WHERE page_id=$1`
+    _, err := r.DB.Exec(psqlStmt, pageID)
+    if err != nil {
+        log.Printf("failed to delete page-%v row from database", pageID)
+    }
+    log.Printf("successfully deleted page-%v row from database", pageID)
+    return nil
+}
+
+/**
  * Get user-encrypted page key given userID, pageID
  */
 func (r *Repository) GetUserEncryptedPageKey(userID,

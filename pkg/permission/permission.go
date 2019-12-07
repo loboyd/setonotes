@@ -19,6 +19,7 @@ type Repository interface {
     UpdatePage(p *page.Page) error
     CreatePage(userID int) (int, error) // returns pageID
     DeletePage(pageID int) error
+    DeleteAllPagePermissions(pageID int) error
     GetUserEncryptedPageKey(userID, pageID int) ([]byte, error)
     GetUserDisembodiedPages(userID int) ([]*page.Page, error)
     CreatePagePermission(userID, pageID int, isOwner, canEdit bool,
@@ -279,7 +280,7 @@ func (s *Service) CreatePage(u *user.User, userEncryptedPageKey []byte) (int,
 
 var ErrPermissionConflict = errors.New("permission conflict")
 
-/**
+/** TODO: COMPLETE THIS
  * Delete a page after checking the user has delete-permission (is the owner of
  * the page)
  *
@@ -299,5 +300,21 @@ func (s *Service) DeletePage(pageID, userID int) (error) {
         return ErrPermissionConflict
     }
 
-    return s.repo.DeletePage(p.ID)
+    // delete permissions
+    err = s.repo.DeleteAllPagePermissions(pageID)
+    if err != nil {
+        log.Printf("Unauthorized attempt by user-%v to delete page-%v permissions",
+            userID, pageID)
+        return err
+    }
+
+    // delete page
+    err = s.repo.DeletePage(pageID)
+    if err != nil {
+        log.Printf("Unauthorized attempt by user-%v to delete page-%v", userID,
+            pageID)
+        return err
+    }
+
+    return nil
 }

@@ -27,7 +27,7 @@ import (
  *  }
  */
 func (s *server) createPage(w http.ResponseWriter, r *http.Request) {
-    log.Println("Inside the pages handler...")
+    log.Println("Handling `POST /api/pages` ...")
     // check authentication
     userID, authorized, err := s.authService.CheckAuthStatusBearer(r)
     if err != nil || !authorized {
@@ -107,7 +107,7 @@ func (s *server) createPage(w http.ResponseWriter, r *http.Request) {
  * No data is returned.
  */
 func (s *server) updatePage(w http.ResponseWriter, r *http.Request) {
-    log.Println("Inside the pages handler...")
+    log.Println("Handling `POST /api/pages/{id}` ...")
 
     // check authentication with bearer token
     userID, authorized, err := s.authService.CheckAuthStatusBearer(r)
@@ -202,7 +202,7 @@ func (s *server) updatePage(w http.ResponseWriter, r *http.Request) {
  *  }
  */
 func (s *server) getPage(w http.ResponseWriter, r *http.Request) {
-    log.Println("Inside the pages handler...")
+    log.Println("Handling `GET /api/pages/{id}` ...")
 
     // check authentication with bearer token
     userID, authorized, err := s.authService.CheckAuthStatusBearer(r)
@@ -249,9 +249,54 @@ func (s *server) getPage(w http.ResponseWriter, r *http.Request) {
 }
 
 /**
+ * Handle the DELETE /pages/{id} API call
  *
+ * No request data is expected.
+ *
+ * No data is returned.
  */
 func (s *server) deletePage(w http.ResponseWriter, r *http.Request) {
+    log.Println("handling `DELETE /api/pages/{id}` ...")
+    // check authentication with bearer token
+    userID, authorized, err := s.authService.CheckAuthStatusBearer(r)
+    if err != nil || !authorized {
+        log.Println("unauthorized")
+        http.Error(w, http.StatusText(http.StatusUnauthorized),
+            http.StatusUnauthorized)
+        return
+    }
+    log.Println("successfully confirmed authorization")
+
+    // get user
+    u, err := s.userService.GetByID(userID)
+    if err != nil {
+        log.Println("failed to get user by ID for POST api/pages")
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return
+    }
+    log.Println("successfully retrieved user", u.ID)
+
+    // get URL variables
+    pageID, err := strconv.Atoi(mux.Vars(r)["id"])
+    if err != nil {
+        log.Printf("error converting page ID to string: %v", err)
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return
+    }
+    log.Println("page ID: ", pageID)
+
+    // delete page
+    err = s.permissionService.DeletePage(pageID, userID)
+    if err != nil {
+        log.Printf("error getting page and key: %v", err)
+        http.Error(w, http.StatusText(http.StatusInternalServerError),
+            http.StatusInternalServerError)
+        return;
+    }
+
+    w.WriteHeader(http.StatusOK)
 }
 
 /**

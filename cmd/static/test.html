@@ -14,7 +14,7 @@ function testGetPage() {
     let sessionToken = document.cookie.substr(14);
 
     $.ajax({
-        url: "/api/pages/201",
+        url: "/api/pages/203",
         type: "GET",
         headers: {
             'Authorization': `Bearer ${sessionToken}`
@@ -53,7 +53,7 @@ function testUpdatePage() {
     let sessionToken = document.cookie.substr(14);
 
     $.ajax({
-        url: "/api/pages/201",
+        url: "/api/pages/203",
         type: "POST",
         headers: {
             'Authorization': `Bearer ${sessionToken}`
@@ -68,6 +68,25 @@ function testUpdatePage() {
         console.log(response);
     });
 }
+
+function testDeletePage() {
+    // TODO: Make this work in the case where there is more than one cookie
+    // len("session_token=") == 14
+    let sessionToken = document.cookie.substr(14);
+
+    $.ajax({
+        url: "/api/pages/203",
+        type: "DELETE",
+        headers: {
+            'Authorization': `Bearer ${sessionToken}`
+        },
+        dataType: 'json',
+    })
+    .then(function(response){
+        console.log(response);
+    });
+}
+
 </script>
 
 </body>

@@ -5,7 +5,7 @@
 <script src="/static/js/editor.js" defer></script>
 <form id="input-form" action="/save/{{ .ID }}" method="POST">
 <div style="display: none">
-    <textarea name="title" rows="1" cols="40">{{printf "%s" .Title}}</textarea>
+    <textarea id="input-title" name="title" rows="1" cols="40">{{printf "%s" .Title}}</textarea>
 </div>
 <div>
     <textarea id="input-body" name="body" style="display: none">{{printf "%s" .Body}}</textarea>

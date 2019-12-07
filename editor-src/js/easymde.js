@@ -7,6 +7,7 @@ require('codemirror/mode/markdown/markdown.js');
 require('codemirror/addon/mode/overlay.js');
 require('codemirror/addon/display/placeholder.js');
 require('codemirror/addon/selection/mark-selection.js');
+require('codemirror/addon/selection/active-line.js');
 require('codemirror/addon/search/searchcursor.js');
 require('codemirror/mode/gfm/gfm.js');
 require('codemirror/mode/xml/xml.js');
@@ -40,8 +41,6 @@ var bindings = {
     'drawHorizontalRule': drawHorizontalRule,
     'undo': undo,
     'redo': redo,
-    'toggleSideBySide': toggleSideBySide,
-    'toggleFullScreen': toggleFullScreen,
 };
 
 var shortcuts = {
@@ -56,9 +55,6 @@ var shortcuts = {
     'toggleOrderedList': 'Cmd-Alt-L',
     'toggleUnorderedList': 'Cmd-L',
     'toggleCodeBlock': 'Cmd-Alt-C',
-    'togglePreview': 'Cmd-P',
-    'toggleSideBySide': 'F9',
-    'toggleFullScreen': 'F11',
 };
 
 var getBindingName = function (f) {
@@ -708,15 +704,6 @@ function drawImage(editor) {
 }
 
 /**
- * Action for opening the browse-file window to upload an image to a server.
- * @param editor {EasyMDE} The EasyMDE object
- */
-function drawUploadedImage(editor) {
-    // TODO: Draw the image template with a fake url? ie: '![](importing foo.png...)'
-    editor.openBrowseFileWindow();
-}
-
-/**
  * Action executed after an image have been successfully imported on the server.
  * @param editor {EasyMDE} The EasyMDE object
  * @param url {string} The url of the uploaded image
@@ -852,7 +839,6 @@ function togglePreview(editor) {
     var toolbar = editor.options.toolbar ? editor.toolbarElements.preview : false;
     var preview = wrapper.lastChild;
     if (!preview || !/editor-preview-full/.test(preview.className)) {
-
         preview = document.createElement('div');
         preview.className = 'editor-preview-full';
 
@@ -870,7 +856,19 @@ function togglePreview(editor) {
 
         wrapper.appendChild(preview);
     }
+    // runs when editor launches
     if (/editor-preview-active/.test(preview.className)) {
+
+        // if there is no scrolling to be done, then set the target to zero
+        if (preview.scrollHeight == preview.clientHeight) {
+            var scrollTargetFraction = 0;
+        // otherwise, calculate the scroll target fraction
+        } else {
+            scrollTargetFraction = preview.scrollTop / (preview.scrollHeight -
+                preview.clientHeight);
+        }
+
+        // not really sure how this bit works, but it seems to hide the preview and show the editor
         preview.className = preview.className.replace(
             /\s*editor-preview-active\s*/g, ''
         );
@@ -878,7 +876,34 @@ function togglePreview(editor) {
             toolbar.className = toolbar.className.replace(/\s*active\s*/g, '');
             toolbar_div.className = toolbar_div.className.replace(/\s*disabled-for-preview*/g, '');
         }
+
+        // scroll editor to approximate preview position and drop cursor there
+        var editorScrollInfo = cm.getScrollInfo();
+        var scrollTargetPosition = scrollTargetFraction *
+                    (editorScrollInfo['height'] -
+                     editorScrollInfo['clientHeight']);
+        cm.scrollTo(0, scrollTargetPosition);
+        var targetLineNumber = Math.round(scrollTargetFraction * (cm.lineCount() - 1));
+        cm.setCursor({line: targetLineNumber, ch: cm.getLine(targetLineNumber).length});
+        cm.scrollIntoView({line: targetLineNumber, ch: 0});
+        setTimeout(function(){cm.focus();},10);
+
+        // change the edit icon to a preview icon
+        document.getElementsByClassName('fa-edit')[0].className = 'fa fa-eye';
+        document.getElementsByClassName('edit')[0].title = 'Preview (Escape)';
+
+        // hide toolbar buttons related to editing
+        var formattingButtons = document.getElementsByClassName('fmt-button');
+        for (i=0; i<formattingButtons.length; i++) {
+            formattingButtons[i].style.display = '';
+        }
+    // runs when preview launches
     } else {
+        editorScrollInfo = cm.getScrollInfo();
+        scrollTargetFraction = editorScrollInfo['top'] /
+                    (editorScrollInfo['height'] -
+                     editorScrollInfo['clientHeight']);
+
         // When the preview button is clicked for the first time,
         // give some time for the transition from editor.css to fire and the view to slide from right to left,
         // instead of just appearing.
@@ -889,14 +914,77 @@ function togglePreview(editor) {
             toolbar.className += ' active';
             toolbar_div.className += ' disabled-for-preview';
         }
+
+        preview.innerHTML = editor.options.previewRender(editor.value(), preview);
+
+        // put whatever is in the title field in the editor back into the hidden field
+        document.getElementById('input-title').value = document.getElementById('editor-title').value;
+
+        // create an h1 that contains the note title
+        // we have to create this every time the preview launches because the markdown renderer gets rid of it
+        var previewTitle = document.createElement('h1');
+        previewTitle.appendChild(document.createTextNode(document.getElementById('input-title').value));
+        previewTitle.id = 'preview-title';
+        preview.insertBefore(previewTitle, preview.childNodes[0]);
+
+        // for some reason, waiting a moment before scrolling the preview
+        // seems to make it happy
+        setTimeout(function(){
+            scrollTargetPosition = scrollTargetFraction * (preview.scrollHeight
+                    - preview.clientHeight);
+            preview.scrollTo(0, scrollTargetPosition);
+            preview.focus();
+        }, 1);
+
+        // change the edit icon to a preview icon
+        document.getElementsByClassName('fa-eye')[0].className = 'fa fa-edit';
+        document.getElementsByClassName('edit')[0].title = 'Edit ("i" or "a")';
+
+        // show toolbar buttons related to editing
+        formattingButtons = document.getElementsByClassName('fmt-button');
+        for (i=0; i<formattingButtons.length; i++) {
+            formattingButtons[i].style.display = 'none';
+        }
     }
-    preview.innerHTML = editor.options.previewRender(editor.value(), preview);
 
     // Turn off side by side if needed
     var sidebyside = cm.getWrapperElement().nextSibling;
     if (/editor-preview-active-side/.test(sidebyside.className))
         toggleSideBySide(editor);
 }
+
+
+/**
+ * Save note action.
+ */
+function saveNote(editor) {
+    // the user is trying to save, so make sure we don't bother them about
+    // leaving unsaved changes
+    editor.tryingToSave = true;
+
+    // copy whatever is in the editor's title field back into the hidden form element
+    document.getElementById('input-title').value = document.getElementById('editor-title').value;
+
+    // submit the hidden form
+    document.getElementById('input-form').submit();
+}
+
+
+/**
+ * Back to directory action.
+ */
+function backToDirectory() {
+    window.location.href = '../../';
+}
+
+
+/**
+ * Delete note action.
+ */
+function deleteNote() {
+    console.log('delete note');
+}
+
 
 function _replaceSelection(cm, active, startEnd, url) {
     if (/editor-preview-active/.test(cm.getWrapperElement().lastChild.className))
@@ -1239,164 +1327,124 @@ function wordCount(data) {
     return count;
 }
 
-function saveNote() {
-    document.getElementById('input-form').submit();
-}
-
 var toolbarBuiltInButtons = {
     'bold': {
         name: 'bold',
         action: toggleBold,
-        className: 'fa fa-bold',
+        className: 'fa fa-bold fmt-button',
         title: 'Bold',
         default: true,
     },
     'italic': {
         name: 'italic',
         action: toggleItalic,
-        className: 'fa fa-italic',
+        className: 'fa fa-italic fmt-button',
         title: 'Italic',
         default: true,
     },
     'strikethrough': {
         name: 'strikethrough',
         action: toggleStrikethrough,
-        className: 'fa fa-strikethrough',
+        className: 'fa fa-strikethrough fmt-button',
         title: 'Strikethrough',
+        default: true,
     },
     'heading': {
         name: 'heading',
         action: toggleHeadingSmaller,
-        className: 'fa fa-header fa-heading',
+        className: 'fa fa-header fa-heading fmt-button',
         title: 'Heading',
         default: true,
-    },
-    'heading-smaller': {
-        name: 'heading-smaller',
-        action: toggleHeadingSmaller,
-        className: 'fa fa-header fa-heading header-smaller',
-        title: 'Smaller Heading',
-    },
-    'heading-bigger': {
-        name: 'heading-bigger',
-        action: toggleHeadingBigger,
-        className: 'fa fa-header fa-heading header-bigger',
-        title: 'Bigger Heading',
-    },
-    'heading-1': {
-        name: 'heading-1',
-        action: toggleHeading1,
-        className: 'fa fa-header fa-heading header-1',
-        title: 'Big Heading',
-    },
-    'heading-2': {
-        name: 'heading-2',
-        action: toggleHeading2,
-        className: 'fa fa-header fa-heading header-2',
-        title: 'Medium Heading',
-    },
-    'heading-3': {
-        name: 'heading-3',
-        action: toggleHeading3,
-        className: 'fa fa-header fa-heading header-3',
-        title: 'Small Heading',
-    },
-    'separator-1': {
-        name: 'separator-1',
     },
     'code': {
         name: 'code',
         action: toggleCodeBlock,
-        className: 'fa fa-code',
+        className: 'fa fa-code fmt-button',
         title: 'Code',
+        default: true,
     },
     'quote': {
         name: 'quote',
         action: toggleBlockquote,
-        className: 'fa fa-quote-left',
+        className: 'fa fa-quote-left fmt-button',
         title: 'Quote',
         default: true,
     },
     'unordered-list': {
         name: 'unordered-list',
         action: toggleUnorderedList,
-        className: 'fa fa-list-ul',
+        className: 'fa fa-list-ul fmt-button',
         title: 'Generic List',
         default: true,
     },
     'ordered-list': {
         name: 'ordered-list',
         action: toggleOrderedList,
-        className: 'fa fa-list-ol',
+        className: 'fa fa-list-ol fmt-button',
         title: 'Numbered List',
         default: true,
     },
     'clean-block': {
         name: 'clean-block',
         action: cleanBlock,
-        className: 'fa fa-eraser',
+        className: 'fa fa-eraser fmt-button',
         title: 'Clean block',
-    },
-    'separator-2': {
-        name: 'separator-2',
+        default: true,
     },
     'link': {
         name: 'link',
         action: drawLink,
-        className: 'fa fa-link',
+        className: 'fa fa-link fmt-button',
         title: 'Create Link',
         default: true,
     },
     'image': {
         name: 'image',
         action: drawImage,
-        className: 'fa fa-image',
+        className: 'fa fa-image fmt-button',
         title: 'Insert Image',
         default: true,
-    },
-    'upload-image': {
-        name: 'upload-image',
-        action: drawUploadedImage,
-        className: 'fa fa-image',
-        title: 'Import an image',
     },
     'table': {
         name: 'table',
         action: drawTable,
-        className: 'fa fa-table',
+        className: 'fa fa-table fmt-button',
         title: 'Insert Table',
+        default: true,
     },
     'horizontal-rule': {
         name: 'horizontal-rule',
         action: drawHorizontalRule,
-        className: 'fa fa-minus',
+        className: 'fa fa-minus fmt-button',
         title: 'Insert Horizontal Line',
+        default: true,
     },
-    'separator-3': {
-        name: 'separator-3',
+    'back': {
+        name: 'back',
+        action: backToDirectory,
+        className: 'fa fa-arrow-left',
+        noDisable: true,
+        title: 'Back (Backspace)',
+        default: true,
     },
-    'preview': {
-        name: 'preview',
+    'delete': {
+        name: 'delete',
+        action: deleteNote,
+        className: 'fa fa-trash',
+        noDisable: true,
+        title: 'Delete Note',
+        default: true,
+    },
+    'separator-1': {
+        name: 'separator-1',
+    },
+    'edit': {
+        name: 'edit',
         action: togglePreview,
         className: 'fa fa-eye',
         noDisable: true,
-        title: 'Toggle Preview',
-    },
-    'side-by-side': {
-        name: 'side-by-side',
-        action: toggleSideBySide,
-        className: 'fa fa-columns',
-        noDisable: true,
-        noMobile: true,
-        title: 'Toggle Side by Side',
-    },
-    'fullscreen': {
-        name: 'fullscreen',
-        action: toggleFullScreen,
-        className: 'fa fa-arrows-alt',
-        noDisable: true,
-        noMobile: true,
-        title: 'Toggle Fullscreen',
+        title: 'Edit ("i" or "a")',
+        default: true,
     },
     'save': {
         name: 'save',
@@ -1413,23 +1461,6 @@ var toolbarBuiltInButtons = {
         noDisable: true,
         title: 'Markdown Guide',
         default: true,
-    },
-    'separator-4': {
-        name: 'separator-4',
-    },
-    'undo': {
-        name: 'undo',
-        action: undo,
-        className: 'fa fa-undo',
-        noDisable: true,
-        title: 'Undo',
-    },
-    'redo': {
-        name: 'redo',
-        action: redo,
-        className: 'fa fa-repeat fa-redo',
-        noDisable: true,
-        title: 'Redo',
     },
 };
 
@@ -1743,12 +1774,9 @@ EasyMDE.prototype.markdown = function (text) {
             markedOptions = {};
         }
 
-        // Update options
-        if (this.options && this.options.renderingConfig && this.options.renderingConfig.singleLineBreaks === false) {
-            markedOptions.breaks = false;
-        } else {
-            markedOptions.breaks = true;
-        }
+        // make sure single line breaks don't appear in the output
+        // this makes it so that paragraphs display correctly
+        markedOptions.breaks = false;
 
         if (this.options && this.options.renderingConfig && this.options.renderingConfig.codeSyntaxHighlighting === true) {
 
@@ -1765,6 +1793,16 @@ EasyMDE.prototype.markdown = function (text) {
 
         // Set options
         marked.setOptions(markedOptions);
+
+	// In order to display math correctly, inline formatting control
+        // characters have to be escaped before they go into the markdown
+        // renderer
+        text = text.replace(/\$.*\$/gi, function(match) {
+            var escapedMath = match;
+            escapedMath = escapedMath.replace('*','\\*');
+            escapedMath = escapedMath.replace('_','\\_');
+            return escapedMath;
+        });
 
         // Convert the markdown to HTML
         var htmlText = marked(text);
@@ -1866,6 +1904,7 @@ EasyMDE.prototype.render = function (el) {
         placeholder: options.placeholder || el.getAttribute('placeholder') || '',
         styleSelectedText: (options.styleSelectedText != undefined) ? options.styleSelectedText : !isMobile(),
         configureMouse: configureMouse,
+        styleActiveLine: {nonEmpty: true},
     });
 
     this.codemirror.getScrollerElement().style.minHeight = options.minHeight;
@@ -2477,6 +2516,7 @@ EasyMDE.redo = redo;
 EasyMDE.togglePreview = togglePreview;
 EasyMDE.toggleSideBySide = toggleSideBySide;
 EasyMDE.toggleFullScreen = toggleFullScreen;
+EasyMDE.saveNote= saveNote;
 
 /**
  * Bind instance methods for exports.
@@ -2599,6 +2639,10 @@ EasyMDE.prototype.toTextArea = function () {
         this.autosaveTimeoutId = undefined;
         this.clearAutosavedValue();
     }
+};
+
+EasyMDE.prototype.saveNote = function () {
+    saveNote(this);
 };
 
 module.exports = EasyMDE;

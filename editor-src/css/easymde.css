@@ -4,7 +4,6 @@
     border: 1px solid #ddd;
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
-    padding: 10px;
     font: inherit;
     z-index: 1;
     word-wrap: break-word;
@@ -12,14 +11,16 @@
 
 .CodeMirror-scroll {
     cursor: text;
-    padding-left: 15%;
+    padding-left: 1%;
     padding-right: 15%;
+    margin-left: 14%;
+    border-left: 1px solid gray;
 }
 
 .CodeMirror-fullscreen {
     background: #fff;
     position: fixed !important;
-    top: 50px;
+    top: 60px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -39,6 +40,11 @@
 
 .CodeMirror-focused .CodeMirror-selected {
     background: #d9d9d9;
+}
+
+/* Add some padding to the bottom of the editor */
+.CodeMirror-lines {
+    padding-bottom: 25px;
 }
 
 .editor-toolbar {
@@ -73,7 +79,7 @@
 
 .editor-toolbar.fullscreen {
     width: 100%;
-    height: 50px;
+    height: 60px;
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
@@ -89,6 +95,7 @@
     left: 0;
     opacity: 1;
     z-index: 9;
+    text-align: right;
 }
 
 .editor-toolbar.fullscreen::before {
@@ -129,7 +136,7 @@
     text-align: center;
     text-decoration: none !important;
     width: 30px;
-    height: 30px;
+    height: 40px;
     margin: 0;
     padding: 0;
     border: 1px solid transparent;
@@ -218,6 +225,7 @@
 }
 
 .editor-preview-full {
+    text-align: justify;
     position: absolute;
     width: 100%;
     height: 100%;
@@ -306,17 +314,19 @@
 .cm-s-easymde .cm-comment {
     background: rgba(0, 0, 0, .05);
     border-radius: 2px;
+    font-family: monospace;
+    padding-top: 3pt;
 }
 
 .cm-s-easymde .cm-link {
-    color: #7f8c8d;
+    color: blue;
 }
 
 .cm-s-easymde .cm-url {
-    color: #aab2b3;
+    color: gray;
 }
 
 .cm-s-easymde .cm-quote {
-    color: #7f8c8d;
+    color: gray;
     font-style: italic;
 }

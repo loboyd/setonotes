@@ -1,0 +1,49 @@
+body {
+    margin: 0 auto;
+    max-width: 50em;
+    font-family: sans-serif;
+    line-height: 1.2;
+    padding: 2em 1em;
+}
+
+a:visited {
+    color: blue;
+}
+
+code,
+pre {
+    margin: 0;
+    word-wrap: normal;
+}
+
+pre {
+    overflow: auto;
+    padding: 16px;
+    border-left: 2px solid #69c;
+}
+
+/* set icon size
+ * need to use !important in order to override font-awesome.css */
+.fa {
+    font-size: 20px!important;
+}
+
+/* set the style for the title field in the editor */
+#editor-title {
+    font-size: 32px;
+    font-weight: bold;
+    margin: 20px 0 20px 0;
+    outline: none;
+    border: none;
+    width: 100%;
+}
+
+blockquote {
+    background: #eee;
+    padding: 1px 2% 1px 2%;
+    border-left: 2px solid #69c;
+}
+
+.fmt-button {
+    float: left;
+}

@@ -12,7 +12,7 @@ import (
     "log"
     "net/http"
 
-    "github.com/setonotes/pkg/page"
+    //"github.com/setonotes/pkg/page"
 )
 
 /**
@@ -143,12 +143,15 @@ func (s *server) signupHandler(w http.ResponseWriter, r *http.Request) {
         if err != nil {
             log.Printf("failed to track user activity: %v", err)
         }
+
+        /*
         // create reference pages that demonstrates Markdown
         err = s.createReferencePage(u.ID)
         if err != nil {
             log.Printf("failed to create reference page: %v", err)
             return
         }
+        */
 
         http.Redirect(w, r, "/", http.StatusFound)
     }
@@ -170,14 +173,13 @@ func (s *server) signoutHandler(w http.ResponseWriter, r *http.Request, _,
     http.Redirect(w, r, "/", http.StatusFound)
 }
 
-/**
+/** TODO: RE-IMPLEMENT THIS
  * Create a reference page to demonstrate various features of Markdown
  * The actual data for the page should probably be stored in the database or in
  * some better way than hard-coding it. One consideration is how easily updated
  * this is (because it should be updated to reflect new features). Eventually
  * it would be nice if there was just a single instance of this page that was
  * read-only to all users.
- */
 func (s *server) createReferencePage(userID int) error {
     p := &page.Page{
         ID: 0,
@@ -235,3 +237,4 @@ func (s *server) createReferencePage(userID int) error {
 
     return nil
 }
+ */

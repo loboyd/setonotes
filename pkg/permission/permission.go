@@ -17,8 +17,9 @@ import (
 type Repository interface {
     CheckPageExists(pageID int) (bool, error)
     UpdatePage(p *page.Page) error
-    CreatePage(p *page.Page, userID int) (int, error) // returns pageID
+    CreatePage(userID int) (int, error) // returns pageID
     DeletePage(pageID int) error
+    DeleteAllPagePermissions(pageID int) error
     GetUserEncryptedPageKey(userID, pageID int) ([]byte, error)
     GetUserDisembodiedPages(userID int) ([]*page.Page, error)
     CreatePagePermission(userID, pageID int, isOwner, canEdit bool,
@@ -160,6 +161,31 @@ func (s *Service) CheckUserCanEditPage(userID, pageID int) (bool, error) {
 }
 
 /**
+ * Return page with user-encrypted page key
+ */
+func (s *Service) GetPageAndKey(pageID, userID int) (*page.Page, []byte,
+    error) {
+
+    log.Printf("getting page-%v for user-%v", pageID, userID)
+
+    // get page
+    p, err := s.pageService.GetByID(pageID)
+    if err != nil {
+        log.Println("failed to get page by ID")
+        return nil, nil, err
+    }
+
+    // get key
+    key, err := s.GetUserEncryptedPageKey(userID, pageID)
+    if err != nil {
+        log.Println("failed to get page-key")
+        return nil, nil, err
+    }
+
+    return p, key, nil
+}
+
+/** TODO: deprecate this
  * Given a pageID and user, load, decrypt, and return a page
  */
 func (s *Service) LoadAndDecryptPage(pageID int,
@@ -185,66 +211,21 @@ func (s *Service) LoadAndDecryptPage(pageID int,
 }
 
 /**
- * Encrypt and save page -- check existance and update page or create new page,
- * encryption is performed by the update/create function
- *
- * returns page ID
- */
-func (s *Service) SavePage(p *page.Page, u *user.User) (int, error) {
-    log.Println("saving page...")
-
-    // check existance
-    log.Println("checking page existance...")
-    pageExists, err := s.repo.CheckPageExists(p.ID)
-    if err != nil {
-        log.Println("failed to check page existance")
-        return 0, err
-    }
-
-    if pageExists {
-        log.Println("page already exists; updating page...")
-        pageID, err := s.updatePage(p, u)
-        if err != nil {
-            log.Println("failed to update page")
-            return 0, err
-        }
-        log.Println("updated page successfully")
-        return pageID, nil
-    }
-
-    log.Println("new page; creating entry...")
-    pageID, err := s.createPage(p, u)
-    if err != nil {
-        log.Println("failed to create new entry")
-        return 0, err
-    }
-    log.Println("successfully created new entry")
-    return pageID, nil
-}
-
-/**
  * Update page's Title and Body attributes in storage
  *
  * Returns page ID
  */
-func (s *Service) updatePage(p *page.Page, u *user.User) (int, error) {
+func (s *Service) UpdatePage(p *page.Page, u *user.User) error {
     // check the the given user has permission to update the given page
     // this should probably ultimately be handled by a `permission` package
     canEdit, err := s.CheckUserCanEditPage(u.ID, p.ID)
     if err != nil {
         log.Println("failed to check permission")
-        return 0, err
+        return err
     }
     if !canEdit {
         log.Printf("user-%v cannot edit page-%v", u.ID, p.ID)
-        return 0, err
-    }
-
-    // encrypt page
-    err = s.UserEncryptPage(u, p)
-    if err != nil {
-        log.Printf("failed to encrypt page-%v for user-%v", p.ID, u.ID)
-        return 0, err
+        return err
     }
 
     // store page
@@ -252,12 +233,12 @@ func (s *Service) updatePage(p *page.Page, u *user.User) (int, error) {
     err = s.repo.UpdatePage(p)
     if err != nil {
         // should we decrypt the page in memory here?
-        log.Println("failed to update page-%v", p.ID)
-        return 0, err
+        log.Printf("failed to update page-%v", p.ID)
+        return err
     }
     log.Printf("succesfully stored updated page-%v", p.ID)
 
-    return p.ID, nil
+    return nil
 }
 
 /**
@@ -273,51 +254,33 @@ func (s *Service) updatePage(p *page.Page, u *user.User) (int, error) {
  *
  * returns page ID
  */
-func (s *Service) createPage(p *page.Page, u *user.User) (int, error) {
+func (s *Service) CreatePage(u *user.User, userEncryptedPageKey []byte) (int,
+    error) {
+
     // Create page with empty byteslices for Title and Body. This allows us to
     // get a meaninful ID from the database (eventually this will be replaced
     // with UUID or something else). Further down we will update this page.
     log.Println("generating ID for new page...")
-    pageID, err := s.repo.CreatePage(
-        &page.Page{Title: []byte(``), Body: []byte(``)},
-        u.ID)
+    pageID, err := s.repo.CreatePage(u.ID)
     if err != nil {
         log.Println("failed to generate ID")
         return 0, err
     }
     log.Println("successfully generated ID")
 
-    // update page with meaningful ID
-    p.ID = pageID
-
-    // create new symmetric key for page
-    log.Println("creating symmetric key for new page...")
-    userEncryptedPageKey, err := s.encryption.NewUserEncryptedSymmetricKey(u)
-    if err != nil {
-        return 0, err
-    }
-    log.Println("successfully created new page key")
-
     // create new page permission and store user-encrypted page key
     // is-owner and can-edit flags are both set
     log.Println("creating new page permission...")
-    s.repo.CreatePagePermission(u.ID, p.ID, true, true,
+    s.repo.CreatePagePermission(u.ID, pageID, true, true,
         userEncryptedPageKey)
     log.Println("successfully created page permission")
-
-    // update page with actual Title and Body fields
-    pageID, err = s.updatePage(p, u)
-    if err != nil {
-        log.Println("failed to update Title and Body attributed for new page")
-        return 0, err
-    }
 
     return pageID, nil
 }
 
 var ErrPermissionConflict = errors.New("permission conflict")
 
-/**
+/** TODO: COMPLETE THIS
  * Delete a page after checking the user has delete-permission (is the owner of
  * the page)
  *
@@ -337,5 +300,21 @@ func (s *Service) DeletePage(pageID, userID int) (error) {
         return ErrPermissionConflict
     }
 
-    return s.repo.DeletePage(p.ID)
+    // delete permissions
+    err = s.repo.DeleteAllPagePermissions(pageID)
+    if err != nil {
+        log.Printf("Unauthorized attempt by user-%v to delete page-%v permissions",
+            userID, pageID)
+        return err
+    }
+
+    // delete page
+    err = s.repo.DeletePage(pageID)
+    if err != nil {
+        log.Printf("Unauthorized attempt by user-%v to delete page-%v", userID,
+            pageID)
+        return err
+    }
+
+    return nil
 }

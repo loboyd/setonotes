@@ -25,7 +25,6 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
         publicKey           []byte
         salt                []byte
         authSalt            []byte
-        version             int
     )
 
     // query database for user-fields
@@ -38,8 +37,7 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
             private_key_encrypted,
             public_key,
             salt,
-            auth_salt,
-            version
+            auth_salt
         FROM users
         WHERE id=$1`
     err := r.DB.QueryRow(psqlStmt, userID).Scan(
@@ -51,7 +49,6 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
         &publicKey,
         &salt,
         &authSalt,
-        &version,
     )
     if err != nil {
         log.Printf("failed to get user-%v from storage: %v", userID, err)
@@ -68,7 +65,6 @@ func (r *Repository) GetUserByID(userID int) (*user.User, error) {
         PublicKey:           publicKey,
         EncryptionSalt:      salt,
         AuthSalt:            authSalt,
-        Version:             version,
     }, nil
 }
 
@@ -119,9 +115,8 @@ func (r *Repository) CreateUser(user *user.User) (int, error) {
             /*private_key_encrypted,
               public_key,*/
             salt,
-            auth_salt,
-            version)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+            auth_salt)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id`
     var userID int
     err := r.DB.QueryRow(psqlStmt,
@@ -133,7 +128,6 @@ func (r *Repository) CreateUser(user *user.User) (int, error) {
         //user.PublicKey,
         user.EncryptionSalt,
         user.AuthSalt,
-        user.Version,
     ).Scan(&userID)
     if err != nil {
         log.Printf("failed to create row in `users`: %v", err)
@@ -166,7 +160,7 @@ func (r *Repository) TrackUserActivity(userID int, url string) error {
  */
 func (r *Repository) GetUserDisembodiedPages(userID int) ([]*page.Page, error) {
     psqlStmt := `
-        SELECT id, title, version, author_id
+        SELECT id, title, author_id
         FROM pages JOIN page_permissions
         ON (pages.id=page_permissions.page_id)
         WHERE user_id=$1`
@@ -186,10 +180,9 @@ func (r *Repository) GetUserDisembodiedPages(userID int) ([]*page.Page, error) {
             pageID         int
             titleEncrypted []byte
             ownerID        int
-            version        int
         )
-        log.Println("scanning row for page ID, title, owner ID, version...")
-        err = rows.Scan(&pageID, &titleEncrypted, &version, &ownerID)
+        log.Println("scanning row for page ID, title, owner ID...")
+        err = rows.Scan(&pageID, &titleEncrypted, &ownerID)
         if err != nil {
             log.Println("failed to get disembodied page from row")
             return nil, err
@@ -202,7 +195,6 @@ func (r *Repository) GetUserDisembodiedPages(userID int) ([]*page.Page, error) {
             Title:   titleEncrypted,
             Body:    []byte(""),
             OwnerID: ownerID,
-            Version: version,
         })
     }
 

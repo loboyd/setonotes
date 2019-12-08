@@ -19,6 +19,7 @@ import (
  * Redirect all HTTP traffic to HTTPS for SeCuRiTy
  */
 func httpsRedirect(w http.ResponseWriter, r *http.Request) {
+    log.Println("Redirecting HTTP to HTTPS...")
     http.Redirect(
         w, r,
         "https://" + r.Host + r.URL.String(),

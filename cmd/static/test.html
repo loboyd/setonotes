@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title>test</title>
+</head>
+<body>
+    <button style="float: right;" onclick="testUpdatePage()">click me!</button>
+
+<script>
+function testGetPage() {
+    // TODO: Make this work in the case where there is more than one cookie
+    // len("session_token=") == 14
+    let sessionToken = document.cookie.substr(14);
+
+    $.ajax({
+        url: "/api/pages/203",
+        type: "GET",
+        headers: {
+            'Authorization': `Bearer ${sessionToken}`
+        },
+        dataType: 'json',
+    })
+    .then(function(response){
+        console.log(response);
+    });
+}
+
+function testCreatePage() {
+    // TODO: Make this work in the case where there is more than one cookie
+    // len("session_token=") == 14
+    let sessionToken = document.cookie.substr(14);
+
+    $.ajax({
+        url: "/api/pages",
+        type: "POST",
+        headers: {
+            'Authorization': `Bearer ${sessionToken}`
+        },
+        data: JSON.stringify({
+            'key': 'YXdlc29tZS1rZXk=',
+        }),
+        dataType: 'json',
+    })
+    .then(function(response){
+        console.log(response);
+    });
+}
+
+function testUpdatePage() {
+    // TODO: Make this work in the case where there is more than one cookie
+    // len("session_token=") == 14
+    let sessionToken = document.cookie.substr(14);
+
+    $.ajax({
+        url: "/api/pages/203",
+        type: "POST",
+        headers: {
+            'Authorization': `Bearer ${sessionToken}`
+        },
+        data: JSON.stringify({
+            'title': 'bmV3LXRpdGxl',
+            'body': 'bmV3LWJvZHk=',
+        }),
+        dataType: 'json',
+    })
+    .then(function(response){
+        console.log(response);
+    });
+}
+
+function testDeletePage() {
+    // TODO: Make this work in the case where there is more than one cookie
+    // len("session_token=") == 14
+    let sessionToken = document.cookie.substr(14);
+
+    $.ajax({
+        url: "/api/pages/203",
+        type: "DELETE",
+        headers: {
+            'Authorization': `Bearer ${sessionToken}`
+        },
+        dataType: 'json',
+    })
+    .then(function(response){
+        console.log(response);
+    });
+}
+
+</script>
+
+</body>
+</html>

@@ -25,6 +25,7 @@ import (
     "github.com/setonotes/pkg/user"
     "github.com/setonotes/pkg/page"
 
+    "github.com/gorilla/mux"
     "github.com/oxtoacart/bpool"
 )
 
@@ -38,7 +39,8 @@ type userService interface {
 }
 
 type authService interface {
-    CheckUserAuthStatus(r *http.Request) (int, bool, error)
+    CheckAuthStatusCookie(r *http.Request) (int, bool, error)
+    CheckAuthStatusBearer(r *http.Request) (int, bool, error)
     InitUserSession(w http.ResponseWriter, r *http.Request, u *user.User,
         password []byte) error
     EndUserSession(w http.ResponseWriter, r *http.Request, userID int) error
@@ -47,14 +49,15 @@ type authService interface {
 
 type permissionService interface {
     GetPageTitles(u *user.User) (map[int][]byte, error)
-    SavePage(p *page.Page, u *user.User) (int, error)
+    CreatePage(u *user.User, userEncryptedKey []byte) (int, error)
+    UpdatePage(p *page.Page, u *user.User) error
     LoadAndDecryptPage(pageID int, u *user.User) (*page.Page, error)
     DeletePage(pageID, userID int) error
-
+    GetPageAndKey(userID, pageID int) (*page.Page, []byte, error)
 }
 
 type server struct {
-    router           *http.ServeMux
+    router            *mux.Router
     templates         map[string]*template.Template
     bufpool           *bpool.BufferPool // used for template rendering
 
@@ -74,7 +77,7 @@ type server struct {
 */
 func newServer(u userService, a authService, p permissionService) *server {
     s := &server{
-        router:            http.NewServeMux(),
+        router:            mux.NewRouter(),
         userService:       u,
         authService:       a,
         permissionService: p,
@@ -98,15 +101,26 @@ func newServer(u userService, a authService, p permissionService) *server {
  * Defines all routes for the site
  */
 func (s *server) routes() {
-    s.router.HandleFunc("/",         s.homePageHandler)
+    //s.router.Host("localhost")
+    s.router.HandleFunc("/",          s.homePageHandler)
     s.router.HandleFunc("/api/salts", s.saltsHandler)
+
+    // page API
+    s.router.HandleFunc("/api/pages/{id}", s.getPage).Methods("GET")
+    s.router.HandleFunc("/api/pages",      s.createPage).Methods("POST")
+    s.router.HandleFunc("/api/pages/{id}", s.updatePage).Methods("POST")
+    s.router.HandleFunc("/api/pages/{id}", s.deletePage).Methods("DELETE")
+
     s.router.HandleFunc("/signup/",  s.signupHandler)
     s.router.HandleFunc("/signin/",  s.signinHandler)
-    s.router.HandleFunc("/static/",  s.staticFileHandler)
     s.router.HandleFunc("/signout/", s.makeHandler(s.signoutHandler))
-    s.router.HandleFunc("/save/",    s.makeHandler(s.saveHandler))
-    s.router.HandleFunc("/edit/",    s.makeHandler(s.editHandler))
-    s.router.HandleFunc("/delete/",  s.makeHandler(s.deleteHandler))
+    //s.router.HandleFunc("/save/",    s.makeHandler(s.saveHandler))
+    //s.router.HandleFunc("/edit/",    s.makeHandler(s.editHandler))
+    //s.router.HandleFunc("/delete/",  s.makeHandler(s.deleteHandler))
+
+    // serve static files from the /static/ directory
+    s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
+        http.FileServer(http.Dir("static"))))
 
     s.validPath = regexp.MustCompile(
         "^/(new|save|edit|delete|signout)/([0-9]*)$")

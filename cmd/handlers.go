@@ -5,7 +5,7 @@ import (
     "strconv"
     "net/http"
 
-    "github.com/setonotes/pkg/page"
+    //"github.com/setonotes/pkg/page"
 )
 
 /**
@@ -18,7 +18,7 @@ func (s *server) makeHandler(fn func (http.ResponseWriter, *http.Request,
     return func(w http.ResponseWriter, r *http.Request) {
         // check authentication status
         log.Println("checking user auth status...")
-        userID, authorized, err := s.authService.CheckUserAuthStatus(r)
+        userID, authorized, err := s.authService.CheckAuthStatusCookie(r)
         if err != nil {
             log.Println("failed to check user auth status")
             http.NotFound(w, r)
@@ -63,7 +63,7 @@ func (s *server) homePageHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     // check user-authorization status
-    userID, authorized, _ := s.authService.CheckUserAuthStatus(r)
+    userID, authorized, _ := s.authService.CheckAuthStatusCookie(r)
     if authorized {
         // show user-specific directory
         s.directoryHandler(w, r, userID, authorized)
@@ -72,13 +72,6 @@ func (s *server) homePageHandler(w http.ResponseWriter, r *http.Request) {
         s.landingPageHandler(w, r, authorized)
     }
 }
-
-func (s *server) staticFileHandler(w http.ResponseWriter, r *http.Request) {
-    // if the user wants a static file, then serve it to them
-    log.Println(r.URL.Path) // TODO probably need a log level switch somewhere
-    http.ServeFile(w, r, r.URL.Path[1:])
-}
-
 
 func (s *server) landingPageHandler(w http.ResponseWriter, r *http.Request,
     authorized bool) {
@@ -138,6 +131,7 @@ func newlineDoctor(text []byte) []byte {
     return text
 }
 
+/* TODO: REMOVE THIS
 func (s *server) editHandler(w http.ResponseWriter, r *http.Request, pageID int,
     userID int, authorized bool) {
 
@@ -181,7 +175,9 @@ func (s *server) editHandler(w http.ResponseWriter, r *http.Request, pageID int,
 
     s.renderTemplate(w, "edit.tmpl", data)
 }
+*/
 
+/* TODO: REMOVE THIS
 func (s *server) saveHandler(w http.ResponseWriter, r *http.Request, pageID int,
     userID int, authorized bool) {
 
@@ -212,7 +208,9 @@ func (s *server) saveHandler(w http.ResponseWriter, r *http.Request, pageID int,
 
     http.Redirect(w, r, "/", http.StatusFound)
 }
+*/
 
+/* TODO: REMOVE THIS
 func (s *server) deleteHandler(w http.ResponseWriter, r *http.Request,
     pageID int, userID int, authorized bool) {
 
@@ -231,4 +229,5 @@ func (s *server) deleteHandler(w http.ResponseWriter, r *http.Request,
     }
     http.Redirect(w, r, "/", http.StatusFound)
 }
+*/
 

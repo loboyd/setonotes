@@ -8,7 +8,6 @@ import (
     "log"
 
     "github.com/setonotes/pkg/page"
-    "github.com/setonotes/pkg/user" // for current version number
 )
 
 /**
@@ -19,15 +18,13 @@ func (r *Repository) GetPageByID(pageID int) (*page.Page, error) {
         title     []byte
         body      []byte
         ownerID   int
-        version   int
     )
     psqlStmt := `
-        SELECT title, body, author_id, version
+        SELECT title, body, author_id
         FROM pages
         WHERE id=$1`
     log.Printf("getting page-%v from DB...", pageID)
-    err := r.DB.QueryRow(psqlStmt, pageID).Scan(&title, &body, &ownerID,
-        &version)
+    err := r.DB.QueryRow(psqlStmt, pageID).Scan(&title, &body, &ownerID)
     if err != nil {
         log.Printf("failed to get page-%v from DB", pageID)
         return nil, err
@@ -39,7 +36,6 @@ func (r *Repository) GetPageByID(pageID int) (*page.Page, error) {
         Title:   title,
         Body:    body,
         OwnerID: ownerID,
-        Version: version,
     }, nil
 }
 
@@ -68,17 +64,16 @@ func (r *Repository) CheckPageExists(pageID int) (bool, error) {
  * particular database implementation, so this should ultimately be switched to
  * UUID or something else
  */
-func (r *Repository) CreatePage(p *page.Page, authorID int) (int, error) {
+func (r *Repository) CreatePage(authorID int) (int, error) {
     log.Println("creating row in `pages` table...")
     psqlStmt := `
-        INSERT INTO pages (title, body, author_id, version)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO pages (author_id)
+        VALUES ($1)
         RETURNING id`
     pageID := 0
-    err := r.DB.QueryRow(psqlStmt, p.Title, p.Body, authorID,
-        user.CurrentVersion).Scan(&pageID)
+    err := r.DB.QueryRow(psqlStmt, authorID).Scan(&pageID)
     if err != nil {
-        log.Println("failed to store page")
+        log.Println("failed to create page")
         return 0, err
     }
     return pageID, nil
@@ -91,9 +86,9 @@ func (r *Repository) UpdatePage(p *page.Page) error {
     log.Printf("updating row for page-%v", p.ID)
     psqlStmt := `
         UPDATE pages
-        SET title=$1, body=$2, version=$3
-        WHERE id=$4`
-    _, err := r.DB.Exec(psqlStmt, p.Title, p.Body, p.Version, p.ID)
+        SET title=$1, body=$2
+        WHERE id=$3`
+    _, err := r.DB.Exec(psqlStmt, p.Title, p.Body, p.ID)
     if err != nil {
         log.Println("failed to updated row for page-%v", p.ID)
         return err
